@@ -1,0 +1,28 @@
+enum Role {
+  ADMIN
+  OWNER
+  TENANT
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  DELETED
+}
+
+enum AuthProvider {
+  GOOGLE
+  CREDENTIAL
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  CANCEL
+  FAILED
+}
+
+enum PaymentGateway {
+    CARD
+    BKASH
+}
