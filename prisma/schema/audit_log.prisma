@@ -1,0 +1,11 @@
+model AuditLog {
+    id        String   @id @default(uuid())
+    userId    String?
+    action    String
+    details   String   // JSON string details meta tracking
+    createdAt DateTime @default(now())
+
+    user      Users?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+    @@map("audit_logs")
+}

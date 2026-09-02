@@ -1,0 +1,13 @@
+model RoomOccupant {
+  id         String   @id @default(uuid())
+  roomId     String
+  tenantId   String
+  movedInAt  DateTime @default(now())
+  movedOutAt DateTime?
+
+  room       Rooms     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  tenant     Users    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, tenantId, movedOutAt]) 
+  @@map("room_occupant")
+}

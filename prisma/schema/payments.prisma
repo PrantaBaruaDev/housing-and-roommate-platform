@@ -1,0 +1,17 @@
+model Payments {
+  id            String        @id @default(uuid())
+  applicationId String
+  tenantId      String
+  amount        Decimal       @db.Decimal(10, 2)
+  transactionId String        @unique
+  status        PaymentStatus @default(PENDING)
+  provider      String        // bKash | SSLCommerz | Stripe
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  tenant        Users         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([transactionId])
+  @@map("payments")
+}

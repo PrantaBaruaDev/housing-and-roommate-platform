@@ -1,0 +1,22 @@
+model Application {
+  id                String            @id @default(uuid())
+  roomId            String
+  tenantId          String
+  status            ApplicationStatus @default(PENDING)
+  moveInDate        DateTime
+
+  // --- 🔄 Dynamic Lockout Tracker ---
+  isPrivateLease    Boolean           @default(false) // True if 1 person buys out all seats
+  agreedRentAmount  Decimal           @db.Decimal(10, 2) // Stores the adjusted calculated price
+
+  rentalDocumentUrl String?           // Cloudinary URL for signed lease contracts
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  room              Rooms             @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  tenant            Users             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  payments          Payments[]
+
+  @@unique([roomId, tenantId])
+  @@map("applications")
+}

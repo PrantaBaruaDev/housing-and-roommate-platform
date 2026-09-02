@@ -15,6 +15,49 @@ enum AuthProvider {
   CREDENTIAL
 }
 
+enum CleanLinesLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum RoomViewingStatus {
+  PENDING
+  OWNER_RESCHEDULED
+  APPROVED
+  REJECTED
+}
+
+enum BookingMode {
+  BOOK_BY_ROOM  // Single tenant locks the whole room privately
+  BOOK_BY_SEAT  // Shared co-living roommate configuration scenario
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum NotificationType {
+  VIEWING_REQUESTED
+  VIEWING_RESCHEDULED
+  VIEWING_APPROVED
+  VIEWING_REJECTED
+  MESSAGE_RECEIVED
+  APPLICATION_UPDATE
+  PAYMENT_CONFIRMED
+  MAINTENANCE_UPDATE
+  VERIFICATION_UPDATE
+}
+
 enum PaymentStatus {
   PENDING
   COMPLETED

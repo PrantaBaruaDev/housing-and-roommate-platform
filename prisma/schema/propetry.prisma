@@ -1,0 +1,19 @@
+model Property {
+  id             String         @id @default(uuid())
+  title          String
+  description    String
+  address        String
+  city           String
+  ownerId        String
+  isDeleted      Boolean        @default(false)
+  deletedAt      DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  owner          Users          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  rooms          Rooms[]
+  utilitySplits  UtilitySplit[]
+
+  @@index([city, isDeleted])
+  @@map("properties")
+}
