@@ -12,6 +12,11 @@ router.get("/",
     PropertyController.getAllProperty
 );
 
+router.get("/is-deleted", 
+    auth(Role.ADMIN),
+    PropertyController.getAllDeletedProperty
+);
+
 // Owners route
 router.post(
     "/",
@@ -35,6 +40,20 @@ router.patch(
     validateRequest(PropertyValidation.PropertyUpdateZodSchema),
     auth(Role.ADMIN, Role.OWNER),
     PropertyController.updatePropertyByID,
+);
+
+router.patch(
+    "/:id/delete",
+    // validateRequest(PropertyValidation.PropertySoftDeleteZodSchema),
+    auth(Role.ADMIN, Role.OWNER),
+    PropertyController.softDeletePropertyByID,
+);
+
+router.delete(
+    "/:id",
+    validateRequest(PropertyValidation.PropertyUpdateZodSchema),
+    auth(Role.ADMIN),
+    PropertyController.deletePropertyByID,
 );
 
 export const PropertyRoutes = router;

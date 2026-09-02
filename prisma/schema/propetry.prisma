@@ -5,6 +5,8 @@ model Property {
   address        String
   city           String
   ownerId        String
+  imagePublicID  String?
+  propertyImage  String?
   isDeleted      Boolean        @default(false)
   deletedAt      DateTime?
   createdAt      DateTime       @default(now())

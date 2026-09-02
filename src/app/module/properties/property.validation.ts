@@ -8,9 +8,15 @@ const PropertyCreateZodSchema = z.object({
     isDeleted: z.boolean().optional(),
 });
 
-const PropertyUpdateZodSchema = PropertyCreateZodSchema.partial();
+const PropertyUpdateZodSchema = PropertyCreateZodSchema.partial()
+
+const PropertySoftDeleteZodSchema = PropertyCreateZodSchema
+    .pick({
+        isDeleted: true
+    })
 
 export const PropertyValidation = {
     PropertyCreateZodSchema,
-    PropertyUpdateZodSchema
+    PropertyUpdateZodSchema,
+    PropertySoftDeleteZodSchema
 };

@@ -36,6 +36,23 @@ const getAllProperty = catchAsync(
     }
 );
 
+const getAllDeletedProperty = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+        const options = req.query;
+		const user = req.user as IRequestUser;
+
+		const result = await PropertyService.getAllDeletedProperty(options, user);
+
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: "Retrieve all deleted property successfully",
+			data: result.data,
+			meta: result.meta,
+		});
+    }
+);
+
 const getPropertyByID = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
         const propertyID = req.params.id as string;
@@ -75,7 +92,6 @@ const updatePropertyByID = catchAsync(
 		const user = req.user as IRequestUser;
 		const payload = req.body;
 
-		console.log(propertyId, "proserty id\n", user, "user id")
 		const result = await PropertyService.updatePropertyByID(propertyId, payload, user);
 
 		sendResponse(res, {
@@ -90,13 +106,33 @@ const updatePropertyByID = catchAsync(
 // TODO soft delete with update isDelete status
 const softDeletePropertyByID = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-        
+        const propertyId = req.params.id as string;
+		const user = req.user as IRequestUser;
+
+		const result = await PropertyService.softDeletePropertyByID(propertyId, user);
+
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: "Property soft delete successfully",
+			data: result,
+		});
     }
 );
 
 const deletePropertyByID = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-        
+        const propertyId = req.params.id as string;
+		const user = req.user as IRequestUser;
+
+		const result = await PropertyService.deletePropertyByID(propertyId, user);
+
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: "Property permanent delete successfully",
+			data: result,
+		});
     }
 );
 
@@ -107,6 +143,7 @@ export const PropertyController = {
     getPropertyByID,
     getAllOwnerOwnProperty,
     updatePropertyByID,
+	getAllDeletedProperty,
     softDeletePropertyByID,
     deletePropertyByID,
 };
