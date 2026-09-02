@@ -21,21 +21,16 @@ export default {
 	google_client_callback_url: process.env.GOOGLE_CLIENT_CALLBACK_URL!,
 
 	// Default user Seed credential
-	super_admin_name: process.env.SUPER_ADMIN_NAME!,
-	super_admin_email: process.env.SUPER_ADMIN_EMAIL!,
-	super_admin_password: process.env.SUPER_ADMIN_PASSWORD!,
 
 	tester_admin_name: process.env.TESTER_ADMIN_NAME!,
 	tester_admin_email: process.env.TESTER_ADMIN_EMAIL!,
 	tester_admin_password: process.env.TESTER_ADMIN_PASSWORD!,
 
-	tester_customer_name: process.env.TESTER_CUSTOMER_NAME,
-	tester_customer_email: process.env.TESTER_CUSTOMER_EMAIL,
-	tester_customer_password: process.env.TESTER_CUSTOMER_PASSWORD,
+	tester_owner_name: process.env.TESTER_OWNER_NAME,
+	tester_owner_email: process.env.TESTER_OWNER_EMAIL,
+	tester_owner_password: process.env.TESTER_OWNER_PASSWORD,
 
-	tester_subscribed_customer_name: process.env.TESTER_SUBSCRIBED_CUSTOMER_NAME,
-	tester_subscribed_customer_email:
-		process.env.TESTER_SUBSCRIBED_CUSTOMER_EMAIL,
-	tester_subscribed_customer_password:
-		process.env.TESTER_SUBSCRIBED_CUSTOMER_PASSWORD,
+	tester_tenant_name: process.env.TESTER_TENANT_NAME,
+	tester_tenant_email: process.env.TESTER_TENANT_EMAIL,
+	tester_tenant_password: process.env.TESTER_TENANT_PASSWORD,
 };

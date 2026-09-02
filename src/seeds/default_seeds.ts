@@ -1,11 +1,11 @@
 import { prisma } from "../app/lib/prisma";
 import {
-	deleteSeedSuperAdmin,
 	deleteSeedTesterAdmin,
-	deleteSeedTesterCustomer,
-	seedSuperAdmin,
+	deleteSeedTesterOwner,
+	deleteSeedTesterTenant,
 	seedTesterAdmin,
-	seedTesterCustomer,
+	seedTesterOwner,
+	seedTesterTenant,
 } from "../app/utils/seeds";
 
 export const defaultSeeds = async () => {
@@ -13,9 +13,9 @@ export const defaultSeeds = async () => {
 		await prisma.$connect();
 		console.log("Connected to the database successfully.");
 
-		await seedSuperAdmin();
 		await seedTesterAdmin();
-		await seedTesterCustomer();
+		await seedTesterOwner();
+		await seedTesterTenant();
 
 		console.table("Database seed input successful");
 	} catch (error) {
@@ -30,9 +30,9 @@ export const deleteDefaultSeeds = async () => {
 		await prisma.$connect();
 		console.log("Connected to the database successfully.");
 
-		await deleteSeedSuperAdmin();
 		await deleteSeedTesterAdmin();
-		await deleteSeedTesterCustomer();
+		await deleteSeedTesterOwner();
+		await deleteSeedTesterTenant();
 
 		console.log("Database seed delete successful");
 	} catch (error) {

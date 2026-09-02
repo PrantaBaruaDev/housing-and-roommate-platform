@@ -27,15 +27,16 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 
-app.use("/api/v1/auth", AuthRoutes);
-
 // Basic route
 app.get("/", async (req: Request, res: Response) => {
 	res.status(httpStatus.OK).json({
 		success: true,
-		message: "Welcome to Financial Manager System Backend",
+		message: "Welcome to Housing & Roommate platform System Backend",
 	});
 });
+
+app.use("/api/v1/auth", AuthRoutes);
+
 
 app.use(globalErrorHandler);
 app.use(notFound);

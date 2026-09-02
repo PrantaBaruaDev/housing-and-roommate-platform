@@ -10,7 +10,8 @@ export default defineConfig({
     bundle: true,
     splitting: false,
     sourcemap: true,
-
+    
+    shims: true,
     // Add this banner to shim require() for CJS dependencies
 
     banner: {

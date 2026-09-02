@@ -73,21 +73,21 @@ passport.use(
 					});
 				}
 
-				// 1. Search for existing user by email or googleId
+				// Search for existing user by email or googleId
 				let user = await prisma.users.findFirst({
 					where: {
 						OR: [{ googleId: profile.id }, { email }],
 					},
 				});
 
-				// 2. Handle soft-deleted or inactive users
+				// Handle soft-deleted or inactive users
 				if (user && (user.isDeleted || user.status !== "ACTIVE")) {
 					return done(null, false, {
 						message: "User account is suspended or deleted.",
 					});
 				}
 
-				// 3. Update existing user if googleId wasn't linked yet
+				// Update existing user if googleId wasn't linked yet
 				if (user) {
 					if (!user.googleId) {
 						user = await prisma.users.update({
@@ -103,7 +103,7 @@ passport.use(
 
 				const photoUrl =
 					profile.photos && profile.photos.length > 0
-						? profile.photos[0].value
+						? profile.photos[0]?.value
 						: null;
 
 				// 4. Create new user if no match found
@@ -122,6 +122,7 @@ passport.use(
 								profilePhoto: photoUrl,
 								address: "",
 								phone: "",
+								nid: "",
 							},
 						},
 					},

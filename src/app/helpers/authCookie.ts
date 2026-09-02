@@ -9,8 +9,7 @@ export interface AuthTokens {
 const cookieOptions = {
 	httpOnly: true, // true/false
 	secure: config.node_env === "production", // http / https
-	sameSite:
-		config.node_env === "production" ? ("none" as const) : ("lax" as const),
+	sameSite: config.node_env === "production" ? ("none" as const) : ("lax" as const),
 }; // none / strict / lax
 
 export const setAuthCookie = (res: Response, tokenInfo: AuthTokens) => {

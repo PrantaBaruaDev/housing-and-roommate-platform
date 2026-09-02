@@ -10,8 +10,8 @@
     /* Output Settings */
     "rootDir": "./",
     "outDir": "./dist",
-    "declaration": true,
-    "declarationMap": true,
+    "declaration": false,
+    "declarationMap": false,
     "sourceMap": true,
 
     /* Strictness & Checks */

@@ -50,19 +50,22 @@ export const globalErrorHandler = async (
 		errorMessage = err.message;
 	}
 
-	res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+	let displayMessage = errorMessage;
+	if (config.node_env === "production" && statusCode === httpStatus.INTERNAL_SERVER_ERROR) {
+		displayMessage = "Internal Server Error";
+	}
+
+	const errorDetails = {
+		name: err.name || "Error",
+		details: err, 
+		...(config.node_env === "development" && {
+			stack: err.stack ? err.stack.split("\n").map((line: string) => line.trim()) : undefined,
+		}),
+	};
+
+	res.status(statusCode).json({
 		success: false,
-		statusCode: statusCode || httpStatus.INTERNAL_SERVER_ERROR,
-		name:
-			config.node_env === "development" ? errorName : "Internal Server Error",
-		message:
-			config.node_env === "development"
-				? errorMessage
-				: "Internal Server Error",
-		error: config.node_env === "development" ? err : undefined,
-		stack:
-			config.node_env === "development" && err instanceof Error
-				? err.stack?.split("\n")
-				: undefined,
+		message: displayMessage,
+		error: errorDetails
 	});
 };
