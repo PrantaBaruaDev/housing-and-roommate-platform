@@ -17,20 +17,21 @@ import {
 import { createUserTokens } from "../../helpers/authToken";
 import httpStatus from "http-status";
 import { ApiError } from "../../errors/ApiError";
-import { googleClient } from "../../lib/googleAuth";
-import { TokenPayload } from "google-auth-library";
 
 const registerUser = async (payload: IRegisterPatientPayload) => {
-	const { name, password, imagePublicId, profilePhoto, address, phone } =
-		payload;
+	const { name, password, role, imagePublicId, profilePhoto, address, phone } = payload;
 	const email = payload.email.trim().toLowerCase();
+
+	if(role === Role.ADMIN) {
+		throw new ApiError(httpStatus.UNAUTHORIZED,"You are not allow to register on this role!");
+	}
 
 	const isUserExists = await prisma.users.findUnique({
 		where: { email },
 	});
 
 	if (isUserExists) {
-		throw new Error("User with this email already exists");
+		throw new ApiError(httpStatus.ALREADY_REPORTED, "User with this email already exists");
 	}
 
 	const hashedPassword = await bcrypt.hash(password, 8);
@@ -40,7 +41,7 @@ const registerUser = async (payload: IRegisterPatientPayload) => {
 			name,
 			email,
 			password: hashedPassword,
-			role: Role.CUSTOMER,
+			role,
 			status: UserStatus.ACTIVE,
 			emailVerified: false,
 			profiles: {

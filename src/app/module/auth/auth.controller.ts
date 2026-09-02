@@ -114,13 +114,25 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
 
 const googleLogin = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		passport.authenticate("google", {
+	// Create an instance of the passport authenticate handler
+		const authenticator = passport.authenticate("google", {
 			scope: ["profile", "email"],
 			session: false,
 			accessType: "offline",
 			prompt: "consent select_account",
-		})(req, res, next);
-	},
+		});
+
+		// Override the internal redirect handler of the strategy instance
+		authenticator.redirect = (url: string) => {
+		res.status(200).json({
+			success: true,
+			message: "Google OAuth URL generated successfully",
+			data: { url },
+		});
+		};
+
+		authenticator(req, res, next);
+	}
 );
 
 const googleCallback = catchAsync(
@@ -153,7 +165,7 @@ const googleCallback = catchAsync(
 				}
 			},
 		)(req, res, next);
-	},
+	}
 );
 
 const logout = catchAsync(

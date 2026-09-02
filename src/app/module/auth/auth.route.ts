@@ -16,12 +16,13 @@ router.post(
 
 // Initiate Google Login
 router.get("/google", AuthController.googleLogin);
+
 // Handle Google Callback
 router.get("/google/callback", AuthController.googleCallback);
 
 router.get(
 	"/me",
-	auth(Role.ADMIN, Role.SUPER_ADMIN, Role.SUBSCRIBED_CUSTOMER, Role.CUSTOMER),
+	auth(Role.ADMIN, Role.OWNER, Role.TENANT),
 	AuthController.getMe,
 );
 router.post("/refresh-token", AuthController.refreshToken);

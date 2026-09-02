@@ -9,6 +9,7 @@ export interface IRegisterPatientPayload {
 	name: string;
 	email: string;
 	password: string;
+	role: Role;
 	imagePublicId?: string;
 	profilePhoto?: string;
 	address: string;
