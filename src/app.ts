@@ -9,6 +9,7 @@ import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { AuthRoutes } from "./app/module/auth/auth.route";
 import { PropertyRoutes } from "./app/module/properties/property.route";
+import { PropertyFlatRoutes } from "./app/module/flats/flats.route";
 
 
 const app: Application = express();
