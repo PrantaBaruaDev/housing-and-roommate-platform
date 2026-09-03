@@ -4,17 +4,25 @@ import { auth } from "../../middleware/checkAuth";
 import { PropertyController } from "./property.controller";
 import { validateRequest } from "../../middleware/validateRequest";
 import { PropertyValidation } from "./property.validation";
+import { PropertyFlatRoutes } from "../flats/flats.route";
 
 const router = Router();
 
-// public route
-router.get("/", 
-    PropertyController.getAllProperty
-);
+router.use("/flat", PropertyFlatRoutes);
 
 router.get("/is-deleted", 
     auth(Role.ADMIN),
     PropertyController.getAllDeletedProperty
+);
+
+router.get("/owner", 
+    auth(Role.ADMIN, Role.OWNER),
+    PropertyController.getAllOwnerOwnProperty
+);
+
+// public route
+router.get("/", 
+    PropertyController.getAllProperty
 );
 
 // Owners route
@@ -23,18 +31,6 @@ router.post(
     validateRequest(PropertyValidation.PropertyCreateZodSchema),
     auth(Role.ADMIN, Role.OWNER),
     PropertyController.createProperty
-);
-
-router.post(
-    "/flat-registration",
-    validateRequest(PropertyValidation.PropertyFlatRegisterInventoryZodSchema),
-    auth(Role.ADMIN, Role.OWNER),
-    PropertyController.createFlatProperty
-);
-
-router.get("/owner", 
-    auth(Role.ADMIN, Role.OWNER),
-    PropertyController.getAllOwnerOwnProperty
 );
 
 router.get(

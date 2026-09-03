@@ -507,7 +507,6 @@ const registerPropertyFlatInventory = async (
     });
 };
 
-
 export const PropertyService = {
     createProperty,
     getAllProperty,
@@ -517,5 +516,5 @@ export const PropertyService = {
     getAllDeletedProperty,
     softDeletePropertyByID,
     deletePropertyByID,
-    registerPropertyFlatInventory,
+    registerPropertyFlatInventory
 };

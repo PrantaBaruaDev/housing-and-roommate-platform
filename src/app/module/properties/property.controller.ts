@@ -137,20 +137,6 @@ const deletePropertyByID = catchAsync(
 
 
 
-const createFlatProperty = catchAsync(async (req: Request, res: Response) => {
-	const payload = req.body;
-	const user = req.user as IRequestUser;
-	const result = await PropertyService.createProperty(payload, user);
-
-	sendResponse(res, {
-		statusCode: httpStatus.CREATED,
-		success: true,
-		message: "Property create successfully",
-		data: result,
-	});
-});
-
-
 export const PropertyController = {
 	createProperty,
     getAllProperty,
@@ -160,6 +146,4 @@ export const PropertyController = {
 	getAllDeletedProperty,
     softDeletePropertyByID,
     deletePropertyByID,
-
-	createFlatProperty,
 };
