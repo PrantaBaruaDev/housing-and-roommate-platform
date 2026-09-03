@@ -25,6 +25,13 @@ router.post(
     PropertyController.createProperty
 );
 
+router.post(
+    "/flat-registration",
+    validateRequest(PropertyValidation.PropertyFlatRegisterInventoryZodSchema),
+    auth(Role.ADMIN, Role.OWNER),
+    PropertyController.createFlatProperty
+);
+
 router.get("/owner", 
     auth(Role.ADMIN, Role.OWNER),
     PropertyController.getAllOwnerOwnProperty

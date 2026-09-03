@@ -36,8 +36,8 @@ enum RoomViewingStatus {
 }
 
 enum BookingMode {
-  BOOK_BY_ROOM  // Single tenant locks the whole room privately
-  BOOK_BY_SEAT  // Shared co-living roommate configuration scenario
+  BOOK_BY_ROOM 
+  BOOK_BY_SEAT 
 }
 
 enum MaintenanceStatus {

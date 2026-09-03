@@ -22,9 +22,8 @@ const createProperty = catchAsync(async (req: Request, res: Response) => {
 const getAllProperty = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
         const options = req.query;
-		const user = req.user as IRequestUser;
 
-		const result = await PropertyService.getAllProperty(options, user);
+		const result = await PropertyService.getAllProperty(options);
 
 		sendResponse(res, {
 			success: true,
@@ -137,6 +136,21 @@ const deletePropertyByID = catchAsync(
 );
 
 
+
+const createFlatProperty = catchAsync(async (req: Request, res: Response) => {
+	const payload = req.body;
+	const user = req.user as IRequestUser;
+	const result = await PropertyService.createProperty(payload, user);
+
+	sendResponse(res, {
+		statusCode: httpStatus.CREATED,
+		success: true,
+		message: "Property create successfully",
+		data: result,
+	});
+});
+
+
 export const PropertyController = {
 	createProperty,
     getAllProperty,
@@ -146,4 +160,6 @@ export const PropertyController = {
 	getAllDeletedProperty,
     softDeletePropertyByID,
     deletePropertyByID,
+
+	createFlatProperty,
 };

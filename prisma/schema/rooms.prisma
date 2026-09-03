@@ -1,25 +1,25 @@
-
 model Rooms {
   id                  String               @id @default(uuid())
   propertyId          String
+  flatId              String
+
   roomNumber          String
   rentAmount          Decimal              @db.Decimal(10, 2)
-
-   // --- 🔄 Dynamic Structural Capacity & Pricing Fields ---
   bookingMode       BookingMode       @default(BOOK_BY_ROOM)
-  maxCapacity       Int               @default(1) // Safety ceiling (e.g., 2 slots for a double room)
+  maxCapacity       Int               @default(1) 
+  
   isAvailable         Boolean              @default(true)
-
   isDeleted           Boolean              @default(false)
   deletedAt           DateTime?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 
   property            Property             @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  flats               Flats                @relation(fields: [flatId], references: [id], onDelete: Cascade)
   applications        Application[]
   viewingRequests     RoomViewingRequest[]
   maintenanceRequests MaintenanceRequest[]
-//   chatThreads         ChatThread[]
+  // chatThreads         ChatThread[]
 
   occupants    RoomOccupant[]   
 

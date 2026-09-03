@@ -15,6 +15,7 @@ model Property {
   owner          Users          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   rooms          Rooms[]
   utilitySplits  UtilitySplit[]
+  flats  Flats[]
 
   @@index([city, isDeleted])
   @@map("properties")

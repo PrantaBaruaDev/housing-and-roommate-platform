@@ -1,3 +1,4 @@
+import { BookingMode } from "../../../generated/prisma/enums";
 
 export interface PropertyModel {
     id: string;
@@ -22,3 +23,21 @@ export type ICreatePropertyPayload = Omit<PropertyModel, "id" | "ownerId" | "cre
 export type IUpdatePropertyPayload = Omit<PropertyModel, "id" | "ownerId" | "createdAt" | "updatedAt">
 export type ISoftDeletePropertyPayload = Pick<PropertyModel, "isDeleted">
 
+
+export interface IRoomInput {
+    roomNumber: string;
+    rentAmount: number;
+    bookingMode?: BookingMode;
+    maxCapacity?: number;
+}
+
+export interface IRegisterPropertyInventoryPayload {
+    propertyId: string;
+
+    // Optional: If omitted, falls back to "Main Unit" and Floor 1
+    flatName?: string;
+    floorNumber?: number;
+
+    // Single flat containing 1 or more room details
+    rooms: IRoomInput[];
+}
