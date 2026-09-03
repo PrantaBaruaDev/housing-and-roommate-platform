@@ -21,6 +21,27 @@ const PropertyFlatRegisterInventoryZodSchema = z.object({
         }).min(1, "At least one room detail must be provided."),
 });
 
+const AddRoomsToFlatSchema = z.object({
+    flatId: z.string({ error: "Flat ID is required." }),
+    rooms: z.array(RoomInputZodSchema).min(1, "At least one room is required."),
+});
+
+const UpdateFlatSchema = z.object({
+    flatName: z.string().optional(),
+    floorNumber: z.number().int().optional(),
+});
+
+const UpdateRoomSchema = z.object({
+    roomNumber: z.string().optional(),
+    rentAmount: z.number().positive().optional(),
+    bookingMode: z.enum(BookingMode).optional(),
+    maxCapacity: z.number().int().positive().optional(),
+    isAvailable: z.boolean().optional(),
+});
+
 export const PropertyFlatValidation = {
-    PropertyFlatRegisterInventoryZodSchema
+    PropertyFlatRegisterInventoryZodSchema,
+    AddRoomsToFlatSchema,
+    UpdateFlatSchema,
+    UpdateRoomSchema,
 };
