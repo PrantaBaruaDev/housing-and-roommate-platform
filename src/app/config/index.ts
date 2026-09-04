@@ -20,6 +20,18 @@ export default {
 	google_client_secret: process.env.GOOGLE_CLIENT_SECRET!,
 	google_client_callback_url: process.env.GOOGLE_CLIENT_CALLBACK_URL!,
 
+	redis_user: process.env.REDIS_USER!,
+	redis_password: process.env.REDIS_PASSWORD!,
+	redis_host: process.env.REDIS_HOST!,
+	redis_port: process.env.REDIS_PORT!,
+
+	bkash_base_url: process.env.BKASH_BASE_URL!,
+	bkash_username: process.env.BKASH_USERNAME!,
+	bkash_password: process.env.BKASH_PASSWORD!,
+	bkash_app_key: process.env.BKASH_APP_KEY!,
+	bkash_app_secret: process.env.BKASH_APP_SECRET!,
+	bkash_callback_url: process.env.BKASH_CALLBACK_URL!,
+
 	// Default user Seed credential
 
 	tester_admin_name: process.env.TESTER_ADMIN_NAME!,

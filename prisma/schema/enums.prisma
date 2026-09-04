@@ -65,7 +65,7 @@ enum PaymentStatus {
   FAILED
 }
 
-enum PaymentGateway {
+enum PaymentProvider {
     CARD
     BKASH
 }
