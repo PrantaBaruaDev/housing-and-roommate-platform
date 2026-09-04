@@ -10,6 +10,7 @@ import { notFound } from "./app/middleware/notFound";
 import { AuthRoutes } from "./app/module/auth/auth.route";
 import { PropertyRoutes } from "./app/module/properties/property.route";
 import { PropertyFlatRoutes } from "./app/module/flats/flats.route";
+import { ApplicationRoutes } from "./app/module/applications/applications.route";
 
 
 const app: Application = express();
@@ -39,6 +40,7 @@ app.get("/", async (req: Request, res: Response) => {
 
 app.use("/api/v1/auth", AuthRoutes);
 app.use("/api/v1/properties", PropertyRoutes);
+app.use("/api/v1/applications", ApplicationRoutes);
 
 
 app.use(globalErrorHandler);

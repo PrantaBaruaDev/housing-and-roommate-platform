@@ -392,7 +392,6 @@ const updatePropertyByID = async (
     });
 
     const { title, description, address, city, isDeleted, propertyImage } = payload;
-    console.log(isDeleted, "is Deleted");
     const updateData: Prisma.PropertyUpdateInput = {};
 
     if (title !== undefined) updateData.title = title.trim();

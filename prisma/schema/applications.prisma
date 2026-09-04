@@ -5,11 +5,12 @@ model Application {
   status            ApplicationStatus @default(PENDING)
   moveInDate        DateTime
 
-  // --- 🔄 Dynamic Lockout Tracker ---
-  isPrivateLease    Boolean           @default(false) // True if 1 person buys out all seats
-  agreedRentAmount  Decimal           @db.Decimal(10, 2) // Stores the adjusted calculated price
+  isPrivateLease    Boolean           @default(false) 
+  agreedRentAmount  Decimal           @db.Decimal(10, 2) 
 
   rentalDocumentUrl String?           // Cloudinary URL for signed lease contracts
+  ownerFeedback     String?
+
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
 
