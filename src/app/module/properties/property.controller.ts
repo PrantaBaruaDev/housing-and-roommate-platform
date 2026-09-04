@@ -21,7 +21,7 @@ const createProperty = catchAsync(async (req: Request, res: Response) => {
 // TODO this function is for public
 const getAllProperty = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-        const options = req.query;
+		const options = req.query;
 
 		const result = await PropertyService.getAllProperty(options);
 
@@ -32,12 +32,12 @@ const getAllProperty = catchAsync(
 			data: result.data,
 			meta: result.meta,
 		});
-    }
+	},
 );
 
 const getAllDeletedProperty = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-        const options = req.query;
+		const options = req.query;
 		const user = req.user as IRequestUser;
 
 		const result = await PropertyService.getAllDeletedProperty(options, user);
@@ -49,12 +49,12 @@ const getAllDeletedProperty = catchAsync(
 			data: result.data,
 			meta: result.meta,
 		});
-    }
+	},
 );
 
 const getPropertyByID = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-        const propertyID = req.params.id as string;
+		const propertyID = req.params.id as string;
 
 		const result = await PropertyService.getPropertyByID(propertyID);
 
@@ -62,15 +62,15 @@ const getPropertyByID = catchAsync(
 			success: true,
 			statusCode: httpStatus.OK,
 			message: "Property retrieve successfully",
-			data: result
+			data: result,
 		});
-    }
+	},
 );
 
 // TODO this function is for privet owner own property for dashboard
 const getAllOwnerOwnProperty = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-        const query = req.query;
+		const query = req.query;
 		const user = req.user as IRequestUser;
 
 		const result = await PropertyService.getAllOwnerOwnProperty(query, user);
@@ -82,16 +82,20 @@ const getAllOwnerOwnProperty = catchAsync(
 			data: result.data,
 			meta: result.meta,
 		});
-    }
+	},
 );
 
 const updatePropertyByID = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-        const propertyId = req.params.id as string;
+		const propertyId = req.params.id as string;
 		const user = req.user as IRequestUser;
 		const payload = req.body;
 
-		const result = await PropertyService.updatePropertyByID(propertyId, payload, user);
+		const result = await PropertyService.updatePropertyByID(
+			propertyId,
+			payload,
+			user,
+		);
 
 		sendResponse(res, {
 			success: true,
@@ -99,16 +103,19 @@ const updatePropertyByID = catchAsync(
 			message: "Property updated successfully",
 			data: result,
 		});
-    }
+	},
 );
 
 // TODO soft delete with update isDelete status
 const softDeletePropertyByID = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-        const propertyId = req.params.id as string;
+		const propertyId = req.params.id as string;
 		const user = req.user as IRequestUser;
 
-		const result = await PropertyService.softDeletePropertyByID(propertyId, user);
+		const result = await PropertyService.softDeletePropertyByID(
+			propertyId,
+			user,
+		);
 
 		sendResponse(res, {
 			success: true,
@@ -116,12 +123,12 @@ const softDeletePropertyByID = catchAsync(
 			message: "Property soft delete successfully",
 			data: result,
 		});
-    }
+	},
 );
 
 const deletePropertyByID = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-        const propertyId = req.params.id as string;
+		const propertyId = req.params.id as string;
 		const user = req.user as IRequestUser;
 
 		const result = await PropertyService.deletePropertyByID(propertyId, user);
@@ -132,18 +139,16 @@ const deletePropertyByID = catchAsync(
 			message: "Property permanent delete successfully",
 			data: result,
 		});
-    }
+	},
 );
-
-
 
 export const PropertyController = {
 	createProperty,
-    getAllProperty,
-    getPropertyByID,
-    getAllOwnerOwnProperty,
-    updatePropertyByID,
+	getAllProperty,
+	getPropertyByID,
+	getAllOwnerOwnProperty,
+	updatePropertyByID,
 	getAllDeletedProperty,
-    softDeletePropertyByID,
-    deletePropertyByID,
+	softDeletePropertyByID,
+	deletePropertyByID,
 };

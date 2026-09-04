@@ -13,7 +13,6 @@ import { PropertyFlatRoutes } from "./app/module/flats/flats.route";
 import { ApplicationRoutes } from "./app/module/applications/applications.route";
 import { PaymentsRoute } from "./app/module/payments/payments.route";
 
-
 const app: Application = express();
 
 app.use(
@@ -44,7 +43,6 @@ app.use("/api/v1/properties", PropertyRoutes);
 app.use("/api/v1/applications", ApplicationRoutes);
 app.use("/api/v1/applications", ApplicationRoutes);
 app.use("/api/v1/payments", PaymentsRoute);
-
 
 app.use(globalErrorHandler);
 app.use(notFound);

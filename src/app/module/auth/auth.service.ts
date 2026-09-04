@@ -19,11 +19,15 @@ import httpStatus from "http-status";
 import { ApiError } from "../../errors/ApiError";
 
 const registerUser = async (payload: IRegisterPatientPayload) => {
-	const { name, password, role, imagePublicId, profilePhoto, address, phone } = payload;
+	const { name, password, role, imagePublicId, profilePhoto, address, phone } =
+		payload;
 	const email = payload.email.trim().toLowerCase();
 
-	if(role === Role.ADMIN) {
-		throw new ApiError(httpStatus.UNAUTHORIZED,"You are not allow to register on this role!");
+	if (role === Role.ADMIN) {
+		throw new ApiError(
+			httpStatus.UNAUTHORIZED,
+			"You are not allow to register on this role!",
+		);
 	}
 
 	const isUserExists = await prisma.users.findUnique({
@@ -31,7 +35,10 @@ const registerUser = async (payload: IRegisterPatientPayload) => {
 	});
 
 	if (isUserExists) {
-		throw new ApiError(httpStatus.ALREADY_REPORTED, "User with this email already exists");
+		throw new ApiError(
+			httpStatus.ALREADY_REPORTED,
+			"User with this email already exists",
+		);
 	}
 
 	const hashedPassword = await bcrypt.hash(password, 8);

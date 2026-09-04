@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
-import {PaymentService} from "./payments.service";
+import { PaymentService } from "./payments.service";
 import { ICreatePaymentPayload } from "./payments.interface";
 import { IRequestUser } from "../auth/auth.interface";
 
@@ -38,7 +38,6 @@ import { IRequestUser } from "../auth/auth.interface";
 // 	},
 // );
 
-
 // const deletePayments = catchAsync(
 // 	async (req: Request, res: Response, next: NextFunction) => {
 // 		const user = req.user as IRequestUser;
@@ -53,7 +52,6 @@ import { IRequestUser } from "../auth/auth.interface";
 // 		});
 // 	},
 // );
-
 
 const createBkashPayments = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -83,7 +81,6 @@ const handleBkashWebhook = catchAsync(
 		res.redirect(redirectUrl);
 	},
 );
-
 
 export const PaymentsController = {
 	// getOwnUserPaymentsHistory,

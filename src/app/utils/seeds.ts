@@ -314,7 +314,6 @@ export const deleteSeedTesterOwner = async () => {
 	}
 };
 
-
 export const deleteSeedTesterTenant = async () => {
 	try {
 		await prisma.users.delete({

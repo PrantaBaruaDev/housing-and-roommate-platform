@@ -1,5 +1,10 @@
 import { Prisma } from "../../../generated/prisma/client";
-import { ApplicationStatus, PaymentProvider, PaymentStatus, Role } from "../../../generated/prisma/enums";
+import {
+	ApplicationStatus,
+	PaymentProvider,
+	PaymentStatus,
+	Role,
+} from "../../../generated/prisma/enums";
 import { ApplicationModel } from "../../../generated/prisma/models";
 import config from "../../config";
 import { ApiError } from "../../errors/ApiError";
@@ -7,7 +12,7 @@ import { getBkashIdToken } from "../../lib/bkash";
 import { prisma } from "../../lib/prisma";
 import { IRequestUser } from "../auth/auth.interface";
 import { ICreatePaymentPayload } from "./payments.interface";
-import httpStatus from 'http-status';
+import httpStatus from "http-status";
 
 const createPaymentCheckoutWithBkash = async (
 	user: IRequestUser,
@@ -18,8 +23,11 @@ const createPaymentCheckoutWithBkash = async (
 		payload.applicationId,
 	);
 
-	if(tenantApplication.status !== ApplicationStatus.APPROVED) {
-		throw new ApiError(httpStatus.FORBIDDEN, "Forbidden, Payment rejected the application is not approved by owner")
+	if (tenantApplication.status !== ApplicationStatus.APPROVED) {
+		throw new ApiError(
+			httpStatus.FORBIDDEN,
+			"Forbidden, Payment rejected the application is not approved by owner",
+		);
 	}
 
 	const amount = Number(tenantApplication.agreedRentAmount);
@@ -31,7 +39,7 @@ const createPaymentCheckoutWithBkash = async (
 			email: true,
 			name: true,
 			role: true,
-		}
+		},
 	});
 
 	const existingPayment = await prisma.payments.findFirst({
@@ -51,7 +59,8 @@ const createPaymentCheckoutWithBkash = async (
 		payAmount: amount,
 		payerReference: userFetch.email,
 	};
-	const bkashPaymentCreate = await PaymentUtils.paymentBkashGearRent(bkashPayload);
+	const bkashPaymentCreate =
+		await PaymentUtils.paymentBkashGearRent(bkashPayload);
 
 	if (bkashPaymentCreate?.statusCode !== "0000") {
 		throw new ApiError(
@@ -88,15 +97,15 @@ const createPaymentCheckoutWithBkash = async (
 		paymentCreate: payment,
 		message: "bKash payment link generated successfully.",
 	};
-}
+};
 
-const paymentBkashCallback = async(query: Record<string, any>) => {
+const paymentBkashCallback = async (query: Record<string, any>) => {
 	const paymentId = query.paymentID;
 
 	if (!paymentId) {
 		throw new Error("Payment Id Missing");
 	}
-console.log(query, "check the query...")
+
 	const status = query.status;
 
 	if (!status) {
@@ -208,13 +217,12 @@ console.log(query, "check the query...")
 	return {
 		redirectUrl: `${config.frontend_url}/payment/cancel?error=payment-failed`,
 	};
-}
+};
 
 export const PaymentService = {
 	createPaymentCheckoutWithBkash,
 	paymentBkashCallback,
-}
-
+};
 
 export const PaymentUtils = {
 	verifyApplicationAccess: async (
@@ -241,7 +249,7 @@ export const PaymentUtils = {
 					id: applicationId,
 					room: {
 						property: {
-							ownerId: user.userId
+							ownerId: user.userId,
 						},
 					},
 				},
@@ -255,8 +263,7 @@ export const PaymentUtils = {
 		);
 	},
 
-
-	paymentBkashGearRent: async(payload: Record<string, any>) => {
+	paymentBkashGearRent: async (payload: Record<string, any>) => {
 		const { applicationId, payAmount, payerReference } = payload;
 
 		const bkashIdToken = await getBkashIdToken();
@@ -287,11 +294,8 @@ export const PaymentUtils = {
 			},
 		);
 
-		console.log(bkashCreatePaymentResponse, "bkash payment response")
-
 		const bkashCreatePaymentResult = await bkashCreatePaymentResponse.json();
 
-console.log(bkashCreatePaymentResult, "bkash payment result")
 		return bkashCreatePaymentResult;
-	}
-}
+	},
+};

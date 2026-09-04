@@ -8,7 +8,10 @@ import { IRequestUser } from "../auth/auth.interface";
 const createFlatProperty = catchAsync(async (req: Request, res: Response) => {
 	const payload = req.body;
 	const user = req.user as IRequestUser;
-	const result = await PropertyFlatService.registerPropertyFlatInventory(payload, user);
+	const result = await PropertyFlatService.registerPropertyFlatInventory(
+		payload,
+		user,
+	);
 
 	sendResponse(res, {
 		statusCode: httpStatus.CREATED,
@@ -18,22 +21,24 @@ const createFlatProperty = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-const addRoomsToExistingFlat = catchAsync(async (req: Request, res: Response) => {
-	const payload = req.body;
-	const user = req.user as IRequestUser;
+const addRoomsToExistingFlat = catchAsync(
+	async (req: Request, res: Response) => {
+		const payload = req.body;
+		const user = req.user as IRequestUser;
 
-	const result = await PropertyFlatService.addRoomsToExistingFlat(
-		payload,
-		user
-	);
+		const result = await PropertyFlatService.addRoomsToExistingFlat(
+			payload,
+			user,
+		);
 
-	sendResponse(res, {
-		statusCode: httpStatus.CREATED,
-		success: true,
-		message: "Rooms added to flat successfully.",
-		data: result,
-	});
-});
+		sendResponse(res, {
+			statusCode: httpStatus.CREATED,
+			success: true,
+			message: "Rooms added to flat successfully.",
+			data: result,
+		});
+	},
+);
 
 const getFlatProperty = catchAsync(async (req: Request, res: Response) => {
 	const query = req.query;
@@ -56,7 +61,7 @@ const updateFlatDetails = catchAsync(async (req: Request, res: Response) => {
 	const result = await PropertyFlatService.updateFlatDetails(
 		flatId as string,
 		payload,
-		user
+		user,
 	);
 
 	sendResponse(res, {
@@ -75,7 +80,7 @@ const updateRoomDetails = catchAsync(async (req: Request, res: Response) => {
 	const result = await PropertyFlatService.updateRoomDetails(
 		roomId as string,
 		payload,
-		user
+		user,
 	);
 
 	sendResponse(res, {
@@ -99,7 +104,6 @@ const deleteRoom = catchAsync(async (req: Request, res: Response) => {
 		data: result,
 	});
 });
-
 
 export const PropertyFlatController = {
 	createFlatProperty,

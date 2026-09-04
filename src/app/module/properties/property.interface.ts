@@ -1,43 +1,48 @@
 import { BookingMode } from "../../../generated/prisma/enums";
 
 export interface PropertyModel {
-    id: string;
-    title: string;
-    description: string;
-    address: string;
-    city: string;
-    ownerId: string;
-    imagePublicID?: string;
-    propertyImage?: string;
-    isDeleted: boolean;
-    deletedAt?: Date;
-    createdAt: Date;
-    updatedAt: Date;
+	id: string;
+	title: string;
+	description: string;
+	address: string;
+	city: string;
+	ownerId: string;
+	imagePublicID?: string;
+	propertyImage?: string;
+	isDeleted: boolean;
+	deletedAt?: Date;
+	createdAt: Date;
+	updatedAt: Date;
 
-    // owner: Users;
-    // rooms: Rooms[];
-    // utilitySplits: UtilitySplit[];
+	// owner: Users;
+	// rooms: Rooms[];
+	// utilitySplits: UtilitySplit[];
 }
 
-export type ICreatePropertyPayload = Omit<PropertyModel, "id" | "ownerId" | "createdAt" | "updatedAt" | "deletedAt">
-export type IUpdatePropertyPayload = Omit<PropertyModel, "id" | "ownerId" | "createdAt" | "updatedAt">
-export type ISoftDeletePropertyPayload = Pick<PropertyModel, "isDeleted">
-
+export type ICreatePropertyPayload = Omit<
+	PropertyModel,
+	"id" | "ownerId" | "createdAt" | "updatedAt" | "deletedAt"
+>;
+export type IUpdatePropertyPayload = Omit<
+	PropertyModel,
+	"id" | "ownerId" | "createdAt" | "updatedAt"
+>;
+export type ISoftDeletePropertyPayload = Pick<PropertyModel, "isDeleted">;
 
 export interface IRoomInput {
-    roomNumber: string;
-    rentAmount: number;
-    bookingMode?: BookingMode;
-    maxCapacity?: number;
+	roomNumber: string;
+	rentAmount: number;
+	bookingMode?: BookingMode;
+	maxCapacity?: number;
 }
 
 export interface IRegisterPropertyInventoryPayload {
-    propertyId: string;
+	propertyId: string;
 
-    // Optional: If omitted, falls back to "Main Unit" and Floor 1
-    flatName?: string;
-    floorNumber?: number;
+	// Optional: If omitted, falls back to "Main Unit" and Floor 1
+	flatName?: string;
+	floorNumber?: number;
 
-    // Single flat containing 1 or more room details
-    rooms: IRoomInput[];
+	// Single flat containing 1 or more room details
+	rooms: IRoomInput[];
 }

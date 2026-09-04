@@ -1,4 +1,7 @@
-import { PaymentProvider, PaymentStatus } from "../../../generated/prisma/enums";
+import {
+	PaymentProvider,
+	PaymentStatus,
+} from "../../../generated/prisma/enums";
 import { Decimal } from "../../../generated/prisma/internal/prismaNamespace";
 
 /* 
@@ -48,7 +51,7 @@ export interface PaymentsModel {
 	tenantId: string;
 	amount: Decimal;
 	paidAt?: Date;
-	status: PaymentStatus
+	status: PaymentStatus;
 
 	paymentProvider: PaymentProvider;
 	merchantInvoiceNumber?: string;
@@ -70,4 +73,4 @@ export interface PaymentsModel {
 	updatedAt?: Date;
 }
 
-export type ICreatePaymentPayload = Pick<PaymentsModel, "applicationId">
+export type ICreatePaymentPayload = Pick<PaymentsModel, "applicationId">;

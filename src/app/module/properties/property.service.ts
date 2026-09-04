@@ -6,514 +6,527 @@ import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
 import { calculatePaginationAndSearch } from "../../utils/paginationAndSearchHelper";
 import { IRequestUser } from "../auth/auth.interface";
-import { ICreatePropertyPayload, IRegisterPropertyInventoryPayload, ISoftDeletePropertyPayload, IUpdatePropertyPayload } from "./property.interface";
-import httpStatus from 'http-status';
+import {
+	ICreatePropertyPayload,
+	IRegisterPropertyInventoryPayload,
+	ISoftDeletePropertyPayload,
+	IUpdatePropertyPayload,
+} from "./property.interface";
+import httpStatus from "http-status";
 
 export const PropertyUtils = {
-    async getSingleOwnerOwnProperty({
-        propertyID,
-        user,
-    }: {
-        propertyID: string;
-        user: IRequestUser;
-    }) {
-        if (!propertyID || !user.userId) {
-            throw new AppError(
-                httpStatus.BAD_REQUEST,
-                "Property ID and Owner ID are strictly required."
-            );
-        }
+	async getSingleOwnerOwnProperty({
+		propertyID,
+		user,
+	}: {
+		propertyID: string;
+		user: IRequestUser;
+	}) {
+		if (!propertyID || !user.userId) {
+			throw new AppError(
+				httpStatus.BAD_REQUEST,
+				"Property ID and Owner ID are strictly required.",
+			);
+		}
 
-        const whereConditions: Prisma.PropertyWhereInput = {
-            id: propertyID,
-        };
+		const whereConditions: Prisma.PropertyWhereInput = {
+			id: propertyID,
+		};
 
-        const userRole = user.role?.toUpperCase();
-        if (userRole !== Role.ADMIN) {
-            whereConditions.ownerId = user.userId;
-        }
+		const userRole = user.role?.toUpperCase();
+		if (userRole !== Role.ADMIN) {
+			whereConditions.ownerId = user.userId;
+		}
 
-        if (userRole === Role.OWNER) {
-            whereConditions.isDeleted = false;
-        }
+		if (userRole === Role.OWNER) {
+			whereConditions.isDeleted = false;
+		}
 
-        const rawProperty = await prisma.property.findFirst({
-            where: whereConditions,
-            include: {
-                owner: {
-                    select: {
-                        name: true,
-                        email: true,
-                        profiles: {
-                            select: {
-                                imagePublicId: true,
-                                profilePhoto: true,
-                                phone: true,
-                                address: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
+		const rawProperty = await prisma.property.findFirst({
+			where: whereConditions,
+			include: {
+				owner: {
+					select: {
+						name: true,
+						email: true,
+						profiles: {
+							select: {
+								imagePublicId: true,
+								profilePhoto: true,
+								phone: true,
+								address: true,
+							},
+						},
+					},
+				},
+			},
+		});
 
-        if (!rawProperty) {
-            throw new AppError(
-                httpStatus.FORBIDDEN,
-                "You are not authorized to view this property or it does not exist."
-            );
-        }
+		if (!rawProperty) {
+			throw new AppError(
+				httpStatus.FORBIDDEN,
+				"You are not authorized to view this property or it does not exist.",
+			);
+		}
 
-        const { profiles, ...ownerData } = rawProperty.owner || {};
+		const { profiles, ...ownerData } = rawProperty.owner || {};
 
-        return {
-            ...rawProperty,
-            owner: {
-                ...ownerData,
-                ...profiles,
-            },
-        };
-    }
-}
+		return {
+			...rawProperty,
+			owner: {
+				...ownerData,
+				...profiles,
+			},
+		};
+	},
+};
 
-const createProperty = async (payload: ICreatePropertyPayload, user: IRequestUser) => {
-    const { title, description, address, city } = payload;
-    const result = await prisma.property.create({
-        data: {
-            title,
-            description,
-            address,
-            city,
-            ownerId: user.userId,
-        }
-    });
+const createProperty = async (
+	payload: ICreatePropertyPayload,
+	user: IRequestUser,
+) => {
+	const { title, description, address, city } = payload;
+	const result = await prisma.property.create({
+		data: {
+			title,
+			description,
+			address,
+			city,
+			ownerId: user.userId,
+		},
+	});
 
-    return result;
+	return result;
 };
 
 // TODO this function is for public
 const getAllProperty = async (query: IQuery) => {
-    const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } = calculatePaginationAndSearch(query);
+	const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } =
+		calculatePaginationAndSearch(query);
 
-    const andConditions: Prisma.PropertyWhereInput[] = [];
+	const andConditions: Prisma.PropertyWhereInput[] = [];
 
-    const searchableFields = ["title", "description", "address", "city"];
+	const searchableFields = ["title", "description", "address", "city"];
 
-    if (searchTerm) {
-        andConditions.push({
-            OR: searchableFields.map((field) => ({
-                [field]: {
-                    contains: searchTerm,
-                    mode: "insensitive",
-                },
-            })),
-        });
-    }
+	if (searchTerm) {
+		andConditions.push({
+			OR: searchableFields.map((field) => ({
+				[field]: {
+					contains: searchTerm,
+					mode: "insensitive",
+				},
+			})),
+		});
+	}
 
-    if (Object.keys(filterData).length > 0) {
-        andConditions.push({
-            AND: Object.keys(filterData).map((key) => ({
-                [key]: filterData[key],
-            })),
-        });
-    }
+	if (Object.keys(filterData).length > 0) {
+		andConditions.push({
+			AND: Object.keys(filterData).map((key) => ({
+				[key]: filterData[key],
+			})),
+		});
+	}
 
-    const whereConditions: Prisma.PropertyWhereInput = {
-        isDeleted: false,
-        ...(andConditions.length > 0 && { AND: andConditions }),
-    };
+	const whereConditions: Prisma.PropertyWhereInput = {
+		isDeleted: false,
+		...(andConditions.length > 0 && { AND: andConditions }),
+	};
 
-    const [rawProperties, total] = await prisma.$transaction([
-        prisma.property.findMany({
-            where: whereConditions,
-            skip,
-            take,
-            orderBy: {
-                [sortBy]: sortOrder,
-            },
-            include: {
-                owner: {
-                    select: {
-                        name: true,
-                        email: true,
-                        profiles: {
-                            select: {
-                                phone: true,
-                                address: true,
-                            }
-                        }
-                    },
-                }
-            }
-        }),
-        prisma.property.count({
-            where: whereConditions,
-        }),
-    ]);
+	const [rawProperties, total] = await prisma.$transaction([
+		prisma.property.findMany({
+			where: whereConditions,
+			skip,
+			take,
+			orderBy: {
+				[sortBy]: sortOrder,
+			},
+			include: {
+				owner: {
+					select: {
+						name: true,
+						email: true,
+						profiles: {
+							select: {
+								phone: true,
+								address: true,
+							},
+						},
+					},
+				},
+			},
+		}),
+		prisma.property.count({
+			where: whereConditions,
+		}),
+	]);
 
-    const totalPages = Math.ceil(total / limit);
+	const totalPages = Math.ceil(total / limit);
 
-    const data = rawProperties.map((property) => {
-        const { profiles, ...ownerData } = property.owner || {};
-        return {
-            ...property,
-            owner: {
-                ...ownerData,
-                phone: profiles?.phone || "",
-                address: profiles?.address || "",
-            },
-        };
-    });
+	const data = rawProperties.map((property) => {
+		const { profiles, ...ownerData } = property.owner || {};
+		return {
+			...property,
+			owner: {
+				...ownerData,
+				phone: profiles?.phone || "",
+				address: profiles?.address || "",
+			},
+		};
+	});
 
-    return {
-        meta: {
-            page,
-            limit,
-            total,
-            totalPages,
-        },
-        data,
-    };
-}
+	return {
+		meta: {
+			page,
+			limit,
+			total,
+			totalPages,
+		},
+		data,
+	};
+};
 
 // TODO this function is for admin can see the all deleted property
 const getAllDeletedProperty = async (query: IQuery, user: IRequestUser) => {
-    const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } = calculatePaginationAndSearch(query);
+	const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } =
+		calculatePaginationAndSearch(query);
 
-    if(user.role !== Role.ADMIN) throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized access only admin can access this resource.") 
+	if (user.role !== Role.ADMIN)
+		throw new ApiError(
+			httpStatus.UNAUTHORIZED,
+			"Unauthorized access only admin can access this resource.",
+		);
 
-    const andConditions: Prisma.PropertyWhereInput[] = [];
+	const andConditions: Prisma.PropertyWhereInput[] = [];
 
-    const searchableFields = ["title", "description", "address", "city"];
+	const searchableFields = ["title", "description", "address", "city"];
 
-    if (searchTerm) {
-        andConditions.push({
-            OR: searchableFields.map((field) => ({
-                [field]: {
-                    contains: searchTerm,
-                    mode: "insensitive",
-                },
-            })),
-        });
-    }
+	if (searchTerm) {
+		andConditions.push({
+			OR: searchableFields.map((field) => ({
+				[field]: {
+					contains: searchTerm,
+					mode: "insensitive",
+				},
+			})),
+		});
+	}
 
-    if (Object.keys(filterData).length > 0) {
-        andConditions.push({
-            AND: Object.keys(filterData).map((key) => ({
-                [key]: filterData[key],
-            })),
-        });
-    }
+	if (Object.keys(filterData).length > 0) {
+		andConditions.push({
+			AND: Object.keys(filterData).map((key) => ({
+				[key]: filterData[key],
+			})),
+		});
+	}
 
-    const whereConditions: Prisma.PropertyWhereInput = {
-        isDeleted: true,
-        ...(andConditions.length > 0 && { AND: andConditions }),
-    };
+	const whereConditions: Prisma.PropertyWhereInput = {
+		isDeleted: true,
+		...(andConditions.length > 0 && { AND: andConditions }),
+	};
 
-    const [rawProperties, total] = await prisma.$transaction([
-        prisma.property.findMany({
-            where: whereConditions,
-            skip,
-            take,
-            orderBy: {
-                [sortBy]: sortOrder,
-            },
-            include: {
-                owner: {
-                    select: {
-                        name: true,
-                        email: true,
-                        profiles: {
-                            select: {
-                                phone: true,
-                                address: true,
-                            }
-                        }
-                    },
-                }
-            }
-        }),
-        prisma.property.count({
-            where: whereConditions,
-        }),
-    ]);
+	const [rawProperties, total] = await prisma.$transaction([
+		prisma.property.findMany({
+			where: whereConditions,
+			skip,
+			take,
+			orderBy: {
+				[sortBy]: sortOrder,
+			},
+			include: {
+				owner: {
+					select: {
+						name: true,
+						email: true,
+						profiles: {
+							select: {
+								phone: true,
+								address: true,
+							},
+						},
+					},
+				},
+			},
+		}),
+		prisma.property.count({
+			where: whereConditions,
+		}),
+	]);
 
-    const totalPages = Math.ceil(total / limit);
+	const totalPages = Math.ceil(total / limit);
 
-    const data = rawProperties.map((property) => {
-        const { profiles, ...ownerData } = property.owner || {};
-        return {
-            ...property,
-            owner: {
-                ...ownerData,
-                phone: profiles?.phone || "",
-                address: profiles?.address || "",
-            },
-        };
-    });
+	const data = rawProperties.map((property) => {
+		const { profiles, ...ownerData } = property.owner || {};
+		return {
+			...property,
+			owner: {
+				...ownerData,
+				phone: profiles?.phone || "",
+				address: profiles?.address || "",
+			},
+		};
+	});
 
-    return {
-        meta: {
-            page,
-            limit,
-            total,
-            totalPages,
-        },
-        data,
-    };
-}
+	return {
+		meta: {
+			page,
+			limit,
+			total,
+			totalPages,
+		},
+		data,
+	};
+};
 
-const getPropertyByID = async (propertyID: PropertyModel["id"],) => {
-    const rawProperties = await prisma.property.findFirstOrThrow({
-        where: { id: propertyID, isDeleted: false },
-        include: {
-            owner: {
-                select: {
-                    name: true,
-                    email: true,
-                    profiles: {
-                        select: {
-                            imagePublicId: true,
-                            profilePhoto: true,
-                            phone: true,
-                            address: true,
-                        }
-                    }
-                },
-            }
-        }
-    });
+const getPropertyByID = async (propertyID: PropertyModel["id"]) => {
+	const rawProperties = await prisma.property.findFirstOrThrow({
+		where: { id: propertyID, isDeleted: false },
+		include: {
+			owner: {
+				select: {
+					name: true,
+					email: true,
+					profiles: {
+						select: {
+							imagePublicId: true,
+							profilePhoto: true,
+							phone: true,
+							address: true,
+						},
+					},
+				},
+			},
+		},
+	});
 
-    const { profiles, ...ownerData } = rawProperties.owner;
-    const result = {
-        ...rawProperties,
-        owner: {
-            ...ownerData,
-            ...profiles
-        }
-    }
-    return result;
-}
+	const { profiles, ...ownerData } = rawProperties.owner;
+	const result = {
+		...rawProperties,
+		owner: {
+			...ownerData,
+			...profiles,
+		},
+	};
+	return result;
+};
 
 // TODO this function is for privet owner own property for dashboard
 const getAllOwnerOwnProperty = async (query: IQuery, user: IRequestUser) => {
-    const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } = calculatePaginationAndSearch(query);
+	const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } =
+		calculatePaginationAndSearch(query);
 
-    const andConditions: Prisma.PropertyWhereInput[] = [];
+	const andConditions: Prisma.PropertyWhereInput[] = [];
 
-    const searchableFields = ["title", "description", "address", "city"];
+	const searchableFields = ["title", "description", "address", "city"];
 
-    // Search Filter
-    if (searchTerm) {
-        andConditions.push({
-            OR: searchableFields.map((field) => ({
-                [field]: {
-                    contains: searchTerm,
-                    mode: "insensitive",
-                },
-            })),
-        });
-    }
+	// Search Filter
+	if (searchTerm) {
+		andConditions.push({
+			OR: searchableFields.map((field) => ({
+				[field]: {
+					contains: searchTerm,
+					mode: "insensitive",
+				},
+			})),
+		});
+	}
 
-    if (Object.keys(filterData).length > 0) {
-        andConditions.push({
-            AND: Object.keys(filterData).map((key) => ({
-                [key]: filterData[key],
-            })),
-        });
-    }
+	if (Object.keys(filterData).length > 0) {
+		andConditions.push({
+			AND: Object.keys(filterData).map((key) => ({
+				[key]: filterData[key],
+			})),
+		});
+	}
 
-    const whereConditions: Prisma.PropertyWhereInput = {
-        ownerId: user.userId,
-        isDeleted: false,
-        ...(andConditions.length > 0 && { AND: andConditions }),
-    };
+	const whereConditions: Prisma.PropertyWhereInput = {
+		ownerId: user.userId,
+		isDeleted: false,
+		...(andConditions.length > 0 && { AND: andConditions }),
+	};
 
-    const [rawProperties, total] = await prisma.$transaction([
-        prisma.property.findMany({
-            where: whereConditions,
-            skip,
-            take,
-            orderBy: {
-                [sortBy]: sortOrder,
-            },
-            include: {
-                owner: {
-                    select: {
-                        name: true,
-                        email: true,
-                        profiles: {
-                            select: {
-                                phone: true,
-                                address: true,
-                            }
-                        }
-                    },
-                }
-            }
-        }),
-        prisma.property.count({
-            where: whereConditions,
-        }),
-    ]);
+	const [rawProperties, total] = await prisma.$transaction([
+		prisma.property.findMany({
+			where: whereConditions,
+			skip,
+			take,
+			orderBy: {
+				[sortBy]: sortOrder,
+			},
+			include: {
+				owner: {
+					select: {
+						name: true,
+						email: true,
+						profiles: {
+							select: {
+								phone: true,
+								address: true,
+							},
+						},
+					},
+				},
+			},
+		}),
+		prisma.property.count({
+			where: whereConditions,
+		}),
+	]);
 
-    const totalPages = Math.ceil(total / limit);
+	const totalPages = Math.ceil(total / limit);
 
-    const data = rawProperties.map((property) => {
-        const { profiles, ...ownerData } = property.owner || {};
-        return {
-            ...property,
-            owner: {
-                ...ownerData,
-                ...profiles,
-            },
-        };
-    });
+	const data = rawProperties.map((property) => {
+		const { profiles, ...ownerData } = property.owner || {};
+		return {
+			...property,
+			owner: {
+				...ownerData,
+				...profiles,
+			},
+		};
+	});
 
-    return {
-        meta: {
-            page,
-            limit,
-            total,
-            totalPages,
-        },
-        data,
-    };
-}
+	return {
+		meta: {
+			page,
+			limit,
+			total,
+			totalPages,
+		},
+		data,
+	};
+};
 
 const updatePropertyByID = async (
-    propertyId: string,
-    payload: IUpdatePropertyPayload,
-    user: IRequestUser
+	propertyId: string,
+	payload: IUpdatePropertyPayload,
+	user: IRequestUser,
 ) => {
-    await PropertyUtils.getSingleOwnerOwnProperty({
-        user,
-        propertyID: propertyId,
-    });
+	await PropertyUtils.getSingleOwnerOwnProperty({
+		user,
+		propertyID: propertyId,
+	});
 
-    const { title, description, address, city, isDeleted, propertyImage } = payload;
-    const updateData: Prisma.PropertyUpdateInput = {};
+	const { title, description, address, city, isDeleted, propertyImage } =
+		payload;
+	const updateData: Prisma.PropertyUpdateInput = {};
 
-    if (title !== undefined) updateData.title = title.trim();
-    if (description !== undefined) updateData.description = description.trim();
-    if (address !== undefined) updateData.address = address.trim();
-    if (city !== undefined) updateData.city = city.trim();
-    if (isDeleted !== undefined && user.role === Role.ADMIN) updateData.isDeleted = isDeleted;
-    if (isDeleted === false && user.role === Role.ADMIN) updateData.deletedAt = null;
+	if (title !== undefined) updateData.title = title.trim();
+	if (description !== undefined) updateData.description = description.trim();
+	if (address !== undefined) updateData.address = address.trim();
+	if (city !== undefined) updateData.city = city.trim();
+	if (isDeleted !== undefined && user.role === Role.ADMIN)
+		updateData.isDeleted = isDeleted;
+	if (isDeleted === false && user.role === Role.ADMIN)
+		updateData.deletedAt = null;
 
-    if (isDeleted !== undefined && user.role !== Role.ADMIN)
-        throw new ApiError(httpStatus.FORBIDDEN, "Forbidden. You don't have permission to access this resource.")
+	if (isDeleted !== undefined && user.role !== Role.ADMIN)
+		throw new ApiError(
+			httpStatus.FORBIDDEN,
+			"Forbidden. You don't have permission to access this resource.",
+		);
 
-    const result = await prisma.property.update({
-        where: { id: propertyId },
-        data: updateData,
-    });
+	const result = await prisma.property.update({
+		where: { id: propertyId },
+		data: updateData,
+	});
 
-    return result;
+	return result;
 };
 
 const softDeletePropertyByID = async (
-    propertyID: string,
-    user: IRequestUser
+	propertyID: string,
+	user: IRequestUser,
 ) => {
-    await PropertyUtils.getSingleOwnerOwnProperty({
-        user,
-        propertyID,
-    });
+	await PropertyUtils.getSingleOwnerOwnProperty({
+		user,
+		propertyID,
+	});
 
-    const updateData: Prisma.PropertyUpdateInput = {};
+	const updateData: Prisma.PropertyUpdateInput = {};
 
-    updateData.isDeleted = true;
-    updateData.deletedAt = new Date();
+	updateData.isDeleted = true;
+	updateData.deletedAt = new Date();
 
-    const result = await prisma.property.update({
-        where: { id: propertyID },
-        data: updateData,
-    });
+	const result = await prisma.property.update({
+		where: { id: propertyID },
+		data: updateData,
+	});
 
-    return result;
-}
+	return result;
+};
 
-const deletePropertyByID = async (
-    propertyID: string,
-    user: IRequestUser
-) => {
-    await PropertyUtils.getSingleOwnerOwnProperty({
-        user,
-        propertyID,
-    });
+const deletePropertyByID = async (propertyID: string, user: IRequestUser) => {
+	await PropertyUtils.getSingleOwnerOwnProperty({
+		user,
+		propertyID,
+	});
 
-    const result = await prisma.property.delete({
-        where: { id: propertyID },
-    });
+	const result = await prisma.property.delete({
+		where: { id: propertyID },
+	});
 
-    return result;
-}
+	return result;
+};
 
 const registerPropertyFlatInventory = async (
-    payload: IRegisterPropertyInventoryPayload,
-    user: IRequestUser
+	payload: IRegisterPropertyInventoryPayload,
+	user: IRequestUser,
 ) => {
-    const {
-        propertyId,
-        flatName,
-        floorNumber,
-        rooms = [],
-    } = payload;
+	const { propertyId, flatName, floorNumber, rooms = [] } = payload;
 
-    await PropertyUtils.getSingleOwnerOwnProperty({
-        user,
-        propertyID: propertyId,
-    });
+	await PropertyUtils.getSingleOwnerOwnProperty({
+		user,
+		propertyID: propertyId,
+	});
 
-    const resolvedFlatName = (flatName?.trim() || "Main Unit");
-    const resolvedFloorNumber = Number(floorNumber) || 0;
+	const resolvedFlatName = flatName?.trim() || "Main Unit";
+	const resolvedFloorNumber = Number(floorNumber) || 0;
 
-    return await prisma.$transaction(async (tx) => {
-        const createdFlat = await tx.flats.create({
-            data: {
-                propertyId,
-                flatName: resolvedFlatName,
-                floorNumber: resolvedFloorNumber,
-                totalRooms: rooms.length,
-            },
-        });
+	return await prisma.$transaction(async (tx) => {
+		const createdFlat = await tx.flats.create({
+			data: {
+				propertyId,
+				flatName: resolvedFlatName,
+				floorNumber: resolvedFloorNumber,
+				totalRooms: rooms.length,
+			},
+		});
 
-        const roomDataToInsert = rooms.map((room) => ({
-            propertyId,
-            flatId: createdFlat.id,
-            roomNumber: room.roomNumber.trim(),
-            rentAmount: new Prisma.Decimal(room.rentAmount),
-            bookingMode: room.bookingMode || BookingMode.BOOK_BY_ROOM,
-            maxCapacity: room.maxCapacity || 1,
-            isAvailable: true,
-        }));
+		const roomDataToInsert = rooms.map((room) => ({
+			propertyId,
+			flatId: createdFlat.id,
+			roomNumber: room.roomNumber.trim(),
+			rentAmount: new Prisma.Decimal(room.rentAmount),
+			bookingMode: room.bookingMode || BookingMode.BOOK_BY_ROOM,
+			maxCapacity: room.maxCapacity || 1,
+			isAvailable: true,
+		}));
 
-        await tx.rooms.createMany({
-            data: roomDataToInsert,
-        });
+		await tx.rooms.createMany({
+			data: roomDataToInsert,
+		});
 
-        return await tx.property.findUnique({
-            where: { id: propertyId },
-            include: {
-                flats: {
-                    include: {
-                        rooms: true,
-                    },
-                },
-            },
-        });
-    });
+		return await tx.property.findUnique({
+			where: { id: propertyId },
+			include: {
+				flats: {
+					include: {
+						rooms: true,
+					},
+				},
+			},
+		});
+	});
 };
 
 export const PropertyService = {
-    createProperty,
-    getAllProperty,
-    getPropertyByID,
-    getAllOwnerOwnProperty,
-    updatePropertyByID,
-    getAllDeletedProperty,
-    softDeletePropertyByID,
-    deletePropertyByID,
-    registerPropertyFlatInventory
+	createProperty,
+	getAllProperty,
+	getPropertyByID,
+	getAllOwnerOwnProperty,
+	updatePropertyByID,
+	getAllDeletedProperty,
+	softDeletePropertyByID,
+	deletePropertyByID,
+	registerPropertyFlatInventory,
 };

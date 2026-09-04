@@ -10,4 +10,5 @@ export const redisClient = createClient({
 	},
 });
 
-export const redisKey = (...parts: string[]) => `housing-roommate-platform:${parts.join(":")}`;
+export const redisKey = (...parts: string[]) =>
+	`housing-roommate-platform:${parts.join(":")}`;
