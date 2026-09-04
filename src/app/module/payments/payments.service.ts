@@ -10,9 +10,107 @@ import config from "../../config";
 import { ApiError } from "../../errors/ApiError";
 import { getBkashIdToken } from "../../lib/bkash";
 import { prisma } from "../../lib/prisma";
+import { tenantSelect } from "../../utils/userSelectionUtils";
 import { IRequestUser } from "../auth/auth.interface";
 import { ICreatePaymentPayload } from "./payments.interface";
 import httpStatus from "http-status";
+
+const getOwnUserPaymentsHistory = async (user: IRequestUser) => {
+	if (user.role === Role.ADMIN) {
+		return prisma.payments.findMany({
+			include: {
+				tenant: {
+					select: tenantSelect
+				},
+			},
+			orderBy: { createdAt: "desc" },
+			omit: {
+				gatewayResponse: true,
+				refundReason: true,
+			}
+		});
+	}
+
+	const condition =
+		user.role === Role.OWNER
+			? {
+				application: {
+					room: {
+						property: {
+							ownerId: user.userId
+						}
+					}
+				}
+			}
+			: {
+				tenantId: user.userId,
+			};
+
+	return prisma.payments.findMany({
+		where: condition,
+		orderBy: { createdAt: "desc" },
+		omit: {
+			gatewayResponse: true,
+			refundReason: true,
+		}
+	});
+}
+
+const getSinglePaymentsByID = async (
+	userId: string,
+	paymentId?: string,
+) => {
+	if (!paymentId ) {
+		throw new ApiError(
+			httpStatus.BAD_REQUEST,
+			"Either paymentId must be provided."
+		);
+	}
+
+	const whereCondition: Prisma.PaymentsWhereInput = { id: paymentId }
+
+	const payment = await prisma.payments.findFirst({
+		where: whereCondition,
+		include: {
+			application: {
+				include: {
+					room: {
+						include: {
+							property: {
+								omit:{
+									description: true,
+									isDeleted: true,
+									deletedAt: true,
+								}
+							}
+						},
+						omit:{
+							isDeleted: true,
+							deletedAt: true,
+						}
+					},
+				},
+			},
+		},
+	});
+
+	if (!payment) {
+		throw new ApiError(httpStatus.NOT_FOUND, "Payment record not found.");
+	}
+
+	const isTenant = payment.tenantId === userId;
+	const isOwner = payment.application?.room?.property?.ownerId === userId;
+
+	if (!isTenant && !isOwner) {
+		throw new ApiError(
+			httpStatus.FORBIDDEN,
+			"Forbidden: You do not have permission to access this payment record."
+		);
+	}
+
+	return payment;
+};
+
 
 const createPaymentCheckoutWithBkash = async (
 	user: IRequestUser,
@@ -222,6 +320,8 @@ const paymentBkashCallback = async (query: Record<string, any>) => {
 export const PaymentService = {
 	createPaymentCheckoutWithBkash,
 	paymentBkashCallback,
+	getOwnUserPaymentsHistory,
+	getSinglePaymentsByID,
 };
 
 export const PaymentUtils = {
@@ -297,5 +397,14 @@ export const PaymentUtils = {
 		const bkashCreatePaymentResult = await bkashCreatePaymentResponse.json();
 
 		return bkashCreatePaymentResult;
+	},
+
+	getPayment: async (id: string) => {
+		const payment = await prisma.payments.findUnique({
+			where: { id },
+		});
+		if (!payment)
+			throw new ApiError(httpStatus.NOT_FOUND, "Payment record not found.");
+		return payment;
 	},
 };

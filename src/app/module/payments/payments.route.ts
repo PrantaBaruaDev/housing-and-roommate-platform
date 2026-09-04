@@ -6,32 +6,25 @@ import { auth } from "../../middleware/checkAuth";
 const router = Router();
 
 // /api/payments
-// router.post(
-// 	"/create",
-// 	auth(Role.OWNER, Role.TENANT),
-// 	PaymentsController.createPayments,
-// );
 
 router.post(
 	"/create/bkash",
-	auth(Role.OWNER, Role.TENANT),
+	auth(Role.OWNER, Role.TENANT, Role.ADMIN),
 	PaymentsController.createBkashPayments,
 );
 
-// router.get(
-// 	"/",
-// 	auth(Role.OWNER, Role.TENANT, Role.ADMIN),
-// 	PaymentsController.getOwnUserPaymentsHistory,
-// );
-// router.get(
-// 	"/:id",
-// 	auth(Role.OWNER, Role.TENANT, Role.ADMIN),
-// 	PaymentsController.getSinglePaymentsByID,
-// );
+router.get(
+	"/",
+	auth(Role.OWNER, Role.TENANT, Role.ADMIN),
+	PaymentsController.getOwnUserPaymentsHistory,
+);
 
-// router.post("/webhook", PaymentsController.handleStripeWebhook);
+router.get(
+	"/:id",
+	auth(Role.OWNER, Role.TENANT, Role.ADMIN),
+	PaymentsController.getSinglePaymentsByID,
+);
 
-// router.post("/bkash", PaymentsController.paymentBkashGearRent);
 router.get(
 	"/applications/payment/callback",
 	PaymentsController.handleBkashWebhook,

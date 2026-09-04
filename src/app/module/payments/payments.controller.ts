@@ -6,37 +6,37 @@ import { PaymentService } from "./payments.service";
 import { ICreatePaymentPayload } from "./payments.interface";
 import { IRequestUser } from "../auth/auth.interface";
 
-// const getOwnUserPaymentsHistory = catchAsync(
-// 	async (req: Request, res: Response, next: NextFunction) => {
-// 		const user = req.user as IRequestUser;
-// 		const payments = await PaymentService.getOwnUserPaymentsHistory(user);
+const getOwnUserPaymentsHistory = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const user = req.user as IRequestUser;
+		const payments = await PaymentService.getOwnUserPaymentsHistory(user);
 
-// 		sendResponse(res, {
-// 			success: true,
-// 			statusCode: httpStatus.OK,
-// 			message: "Payment history retrieved successfully.",
-// 			data: payments,
-// 		});
-// 	},
-// );
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: "Payment history retrieved successfully.",
+			data: payments,
+		});
+	},
+);
 
-// const getSinglePaymentsByID = catchAsync(
-// 	async (req: Request, res: Response, next: NextFunction) => {
-// 		const user = req.user as IRequestUser;
-// 		const { id } = req.params;
-// 		const payment = await PaymentService.getSinglePaymentsByID(
-// 			user,
-// 			id as string,
-// 		);
+const getSinglePaymentsByID = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const user = req.user as IRequestUser;
+		const { id } = req.params;
+		const payment = await PaymentService.getSinglePaymentsByID(
+			user.userId,
+			id as string,
+		);
 
-// 		sendResponse(res, {
-// 			success: true,
-// 			statusCode: httpStatus.OK,
-// 			message: "Payment retrieved successfully.",
-// 			data: payment,
-// 		});
-// 	},
-// );
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: "Payment retrieved successfully.",
+			data: payment,
+		});
+	},
+);
 
 // const deletePayments = catchAsync(
 // 	async (req: Request, res: Response, next: NextFunction) => {
@@ -83,8 +83,8 @@ const handleBkashWebhook = catchAsync(
 );
 
 export const PaymentsController = {
-	// getOwnUserPaymentsHistory,
-	// getSinglePaymentsByID,
+	getOwnUserPaymentsHistory,
+	getSinglePaymentsByID,
 	// createPayments,
 	// deletePayments,
 	// handleStripeWebhook,
