@@ -14,6 +14,7 @@ export interface IRegisterPatientPayload {
 	profilePhoto?: string;
 	address: string;
 	phone: string;
+	nid: string;
 }
 
 export interface IRequestUser {

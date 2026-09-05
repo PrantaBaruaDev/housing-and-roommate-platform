@@ -3,72 +3,8 @@ import httpStatus from "http-status";
 import { Role } from "../../generated/prisma/enums";
 import config from "../config";
 import { prisma } from "../lib/prisma";
-import { AppError } from "./AppError";
+import { ApiError } from "../errors/ApiError";
 
-// export const seedSuperAdmin = async () => {
-// 	try {
-// 		// const checkAnySuperAdminRoleExist = await prisma.users.count({
-// 		// 	where: {
-// 		// 		role: Role.SUPER_ADMIN,
-// 		// 	}
-// 		// });
-
-// 		// if(checkAnySuperAdminRoleExist > 0){
-// 		// 	console.warn("You Have at list >1 Super Admin Already Exists on you database!");
-// 		//     return;
-// 		// }
-
-// 		const isSuperAdminExist = await prisma.users.findFirst({
-// 			where: {
-// 				role: Role.ADMIN,
-// 			},
-// 		});
-
-// 		if (isSuperAdminExist) {
-// 			console.log("Super Admin Already Exists!");
-// 			return;
-// 		}
-
-// 		const name = config.super_admin_name;
-// 		const email = config.super_admin_email;
-// 		const password = config.super_admin_password;
-
-// 		if (!name || !email || !password) {
-// 			throw new AppError(
-// 				httpStatus.INTERNAL_SERVER_ERROR,
-// 				"Super Admin Name , Email, Password Missing In Env File!!!",
-// 			);
-// 		}
-
-// 		const hashedPassword = await bcrypt.hash(
-// 			password,
-// 			Number(config.bcrypt_salt_rounds),
-// 		);
-
-// 		const superAdmin = await prisma.users.create({
-// 			data: {
-// 				name,
-// 				email,
-// 				password: hashedPassword,
-// 				role: Role.ADMIN,
-// 				needPasswordChange: false,
-// 				emailVerified: true,
-// 			},
-// 		});
-
-// 		console.log("Super Admin Created : ", superAdmin);
-// 	} catch (error) {
-// 		console.log("Error Seeding Super Admin : ", error);
-
-// 		await prisma.users.delete({
-// 			where: {
-// 				email: config.super_admin_email,
-// 			},
-// 		});
-// 	}
-// };
-
-//create tester admin
 
 export const seedTesterAdmin = async () => {
 	try {
@@ -101,7 +37,7 @@ export const seedTesterAdmin = async () => {
 		const phone = "";
 
 		if (!name || !email || !password) {
-			throw new AppError(
+			throw new ApiError(
 				httpStatus.INTERNAL_SERVER_ERROR,
 				"Tester Admin Name , Email, Password Missing In Env File!!!",
 			);
@@ -174,7 +110,7 @@ export const seedTesterOwner = async () => {
 		const phone = "";
 
 		if (!name || !email || !password) {
-			throw new AppError(
+			throw new ApiError(
 				httpStatus.INTERNAL_SERVER_ERROR,
 				"Tester Owner Name , Email, Password Missing In Env File!!!",
 			);
@@ -246,7 +182,7 @@ export const seedTesterTenant = async () => {
 		const phone = "";
 
 		if (!name || !email || !password) {
-			throw new AppError(
+			throw new ApiError(
 				httpStatus.INTERNAL_SERVER_ERROR,
 				"Tester Tenant Name , Email, Password Missing In Env File!!!",
 			);

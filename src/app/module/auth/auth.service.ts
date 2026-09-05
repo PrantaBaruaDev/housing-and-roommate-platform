@@ -19,14 +19,13 @@ import httpStatus from "http-status";
 import { ApiError } from "../../errors/ApiError";
 
 const registerUser = async (payload: IRegisterPatientPayload) => {
-	const { name, password, role, imagePublicId, profilePhoto, address, phone } =
-		payload;
+	const { name, password, role, imagePublicId, profilePhoto, address, phone, nid } = payload;
 	const email = payload.email.trim().toLowerCase();
 
 	if (role === Role.ADMIN) {
 		throw new ApiError(
-			httpStatus.UNAUTHORIZED,
-			"You are not allow to register on this role!",
+			httpStatus.FORBIDDEN,
+			"Forbidden: You cannot register as an ADMIN",
 		);
 	}
 
@@ -36,12 +35,12 @@ const registerUser = async (payload: IRegisterPatientPayload) => {
 
 	if (isUserExists) {
 		throw new ApiError(
-			httpStatus.ALREADY_REPORTED,
+			httpStatus.CONFLICT,
 			"User with this email already exists",
 		);
 	}
 
-	const hashedPassword = await bcrypt.hash(password, 8);
+	const hashedPassword = await bcrypt.hash(password, config.bcrypt_salt_rounds);
 
 	const createdUser = await prisma.users.create({
 		data: {
@@ -52,7 +51,7 @@ const registerUser = async (payload: IRegisterPatientPayload) => {
 			status: UserStatus.ACTIVE,
 			emailVerified: false,
 			profiles: {
-				create: { imagePublicId, profilePhoto, address, phone },
+				create: { imagePublicId, profilePhoto, address, phone, nid },
 			},
 		},
 		omit: { password: true },
@@ -60,7 +59,6 @@ const registerUser = async (payload: IRegisterPatientPayload) => {
 	});
 
 	const { profiles, ...user } = createdUser;
-
 	const { accessToken, refreshToken } = createUserTokens(user);
 
 	return {
@@ -80,21 +78,21 @@ const loginUser = async (payload: ILoginUserPayload) => {
 	});
 
 	if (!user) {
-		throw new Error("User not found");
+		throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid credentials");
 	}
 
 	if (user.status === UserStatus.BLOCKED) {
-		throw new Error("User is blocked");
+		throw new ApiError(httpStatus.FORBIDDEN, "User account is blocked");
 	}
 
 	if (user.isDeleted || user.status === UserStatus.DELETED) {
-		throw new Error("User is deleted");
+		throw new ApiError(httpStatus.FORBIDDEN, "User account is deleted");
 	}
 
 	const isPasswordMatched = await bcrypt.compare(password, user.password);
 
 	if (!isPasswordMatched) {
-		throw new Error("Invalid credentials");
+		throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid credentials");
 	}
 
 	const jwtPayload = {
@@ -136,7 +134,7 @@ const getMe = async (user: IRequestUser) => {
 	});
 
 	if (!isUserExists) {
-		throw new Error("User not found");
+		throw new ApiError(httpStatus.NOT_FOUND, "User not found");
 	}
 
 	return isUserExists;
@@ -149,7 +147,7 @@ const refreshToken = async (token: string) => {
 	);
 
 	if (!verifiedRefreshToken.success || !verifiedRefreshToken.data) {
-		throw new Error(
+		throw new ApiError(undefined,
 			config.node_env === "development"
 				? verifiedRefreshToken.error
 				: "Invalid refresh token",
@@ -163,7 +161,7 @@ const refreshToken = async (token: string) => {
 	});
 
 	if (!user || user.isDeleted || user.status !== UserStatus.ACTIVE) {
-		throw new Error("User is inactive or not found");
+		throw new ApiError(httpStatus.NOT_FOUND, "User is inactive or not found");
 	}
 
 	const jwtPayload = {

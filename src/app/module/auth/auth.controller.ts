@@ -8,6 +8,7 @@ import passport from "passport";
 import { createUserTokens } from "../../helpers/authToken";
 import { clearAuthCookie, setAuthCookie } from "../../helpers/authCookie";
 import config from "../../config";
+import { ApiError } from "../../errors/ApiError";
 
 const registerUser = catchAsync(async (req: Request, res: Response) => {
 	const payload = req.body;
@@ -81,25 +82,15 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
 });
 
 const refreshToken = catchAsync(async (req: Request, res: Response) => {
-	if (!req.cookies.refreshToken) {
-		throw new Error("Refresh token is missing");
-	}
-	const result = await AuthService.refreshToken(req.cookies.refreshToken);
+	const token = req.cookies.refreshToken;
+
+    if (!token) {
+        throw new ApiError(httpStatus.UNAUTHORIZED, "Refresh token missing!");
+    }
+
+    const result = await AuthService.refreshToken(token);
 	const { accessToken, refreshToken: newRefreshToken } = result;
-
-	res.cookie("accessToken", accessToken, {
-		httpOnly: true,
-		secure: false,
-		sameSite: "none",
-		maxAge: 1000 * 60 * 60 * 24, // 24 hour or 1 day
-	});
-
-	res.cookie("refreshToken", newRefreshToken, {
-		httpOnly: true,
-		secure: false,
-		sameSite: "none",
-		maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-	});
+	setAuthCookie(res, {refreshToken: newRefreshToken})
 
 	sendResponse(res, {
 		statusCode: httpStatus.OK,

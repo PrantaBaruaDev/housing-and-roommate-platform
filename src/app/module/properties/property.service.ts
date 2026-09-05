@@ -3,7 +3,6 @@ import { PropertyModel } from "../../../generated/prisma/models";
 import { ApiError } from "../../errors/ApiError";
 import { IQuery } from "../../interface";
 import { prisma } from "../../lib/prisma";
-import { AppError } from "../../utils/AppError";
 import { calculatePaginationAndSearch } from "../../utils/paginationAndSearchHelper";
 import { IRequestUser } from "../auth/auth.interface";
 import {
@@ -23,7 +22,7 @@ export const PropertyUtils = {
 		user: IRequestUser;
 	}) {
 		if (!propertyID || !user.userId) {
-			throw new AppError(
+			throw new ApiError(
 				httpStatus.BAD_REQUEST,
 				"Property ID and Owner ID are strictly required.",
 			);
@@ -63,7 +62,7 @@ export const PropertyUtils = {
 		});
 
 		if (!rawProperty) {
-			throw new AppError(
+			throw new ApiError(
 				httpStatus.FORBIDDEN,
 				"You are not authorized to view this property or it does not exist.",
 			);
