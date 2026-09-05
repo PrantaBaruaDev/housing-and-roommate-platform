@@ -55,7 +55,6 @@ const credentialsLogin = catchAsync(
 					data: {
 						accessToken: userTokens.accessToken,
 						refreshToken: userTokens.refreshToken,
-						// rest,
 					},
 				});
 			} catch (error) {
@@ -105,7 +104,6 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
 
 const googleLogin = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
-		// Create an instance of the passport authenticate handler
 		const authenticator = passport.authenticate("google", {
 			scope: ["profile", "email"],
 			session: false,
@@ -113,7 +111,6 @@ const googleLogin = catchAsync(
 			prompt: "consent select_account",
 		});
 
-		// Override the internal redirect handler of the strategy instance
 		authenticator.redirect = (url: string) => {
 			res.status(200).json({
 				success: true,
@@ -133,7 +130,6 @@ const googleCallback = catchAsync(
 			{ session: false },
 			async (err: any, user: any, info: any) => {
 				try {
-					// Handle Passport errors or missing user
 					if (err || !user) {
 						const errorMessage = info?.message || err?.message || "auth_failed";
 						return res.redirect(
@@ -141,13 +137,10 @@ const googleCallback = catchAsync(
 						);
 					}
 
-					// Generate application tokens
 					const userTokens = createUserTokens(user);
 
-					// Attach auth cookie to response
 					setAuthCookie(res, userTokens);
 
-					// Redirect back to frontend
 					return res.redirect(
 						`${config.frontend_url}/auth/success?token=${userTokens.accessToken}`,
 					);
