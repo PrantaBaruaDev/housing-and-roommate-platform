@@ -38,20 +38,20 @@ const getSinglePaymentsByID = catchAsync(
 	},
 );
 
-// const deletePayments = catchAsync(
-// 	async (req: Request, res: Response, next: NextFunction) => {
-// 		const user = req.user as IRequestUser;
-// 		const { id } = req.params;
-// 		const payment = await PaymentService.deletePayment(user, id as string);
+const deletePayments = catchAsync(
+	async (req: Request, res: Response, next: NextFunction) => {
+		const user = req.user as IRequestUser;
+		const { id } = req.params;
+		const payment = await PaymentService.deletePayment(user, id as string);
 
-// 		sendResponse(res, {
-// 			success: true,
-// 			statusCode: httpStatus.OK,
-// 			message: "Payment deleted successfully.",
-// 			data: payment,
-// 		});
-// 	},
-// );
+		sendResponse(res, {
+			success: true,
+			statusCode: httpStatus.OK,
+			message: "Payment deleted successfully.",
+			data: payment,
+		});
+	},
+);
 
 const createBkashPayments = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -85,9 +85,7 @@ const handleBkashWebhook = catchAsync(
 export const PaymentsController = {
 	getOwnUserPaymentsHistory,
 	getSinglePaymentsByID,
-	// createPayments,
-	// deletePayments,
-	// handleStripeWebhook,
+	deletePayments,
 	handleBkashWebhook,
 	createBkashPayments,
 };

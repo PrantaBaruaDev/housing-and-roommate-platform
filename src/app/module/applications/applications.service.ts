@@ -1,3 +1,4 @@
+import { omit } from "zod/mini";
 import {
 	ApplicationStatus,
 	Prisma,
@@ -59,13 +60,6 @@ const createApplication = async (
 		);
 	}
 
-	// if (existingApplication) {
-	//     throw new ApiError(
-	//         httpStatus.CONFLICT,
-	//         "You have already submitted an application for this room."
-	//     );
-	// }
-
 	const result = await prisma.application.create({
 		data: {
 			roomId: payload.roomId,
@@ -87,8 +81,7 @@ const createApplication = async (
 };
 
 const getAllApplications = async (query: IQuery, user: IRequestUser) => {
-	const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } =
-		calculatePaginationAndSearch(query);
+	const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } = calculatePaginationAndSearch(query);
 
 	const andConditions: Prisma.ApplicationWhereInput[] = [];
 
@@ -129,8 +122,7 @@ const getAllApplications = async (query: IQuery, user: IRequestUser) => {
 		});
 	}
 
-	const whereConditions: Prisma.ApplicationWhereInput =
-		andConditions.length > 0 ? { AND: andConditions } : {};
+	const whereConditions: Prisma.ApplicationWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
 
 	const [data, total] = await prisma.$transaction([
 		prisma.application.findMany({
@@ -146,6 +138,13 @@ const getAllApplications = async (query: IQuery, user: IRequestUser) => {
 				isPrivateLease: true,
 				agreedRentAmount: true,
 				ownerFeedback: true,
+				tenant: {
+					select: {
+						id: true,
+						name: true,
+						email: true,
+					},
+				},
 				room: {
 					select: {
 						id: true,
@@ -168,13 +167,7 @@ const getAllApplications = async (query: IQuery, user: IRequestUser) => {
 						},
 					},
 				},
-				tenant: {
-					select: {
-						id: true,
-						name: true,
-						email: true,
-					},
-				},
+				payments: true,
 			},
 		}),
 		prisma.application.count({ where: whereConditions }),
@@ -192,6 +185,9 @@ const getApplicationById = async (id: string, user: IRequestUser) => {
 	const application = await prisma.application.findUnique({
 		where: { id },
 		include: {
+			tenant: {
+				select: tenantSelect,
+			},
 			room: {
 				include: {
 					property: {
@@ -200,15 +196,13 @@ const getApplicationById = async (id: string, user: IRequestUser) => {
 								select: ownerSelect,
 							},
 						},
+						...user.role !== Role.ADMIN && { omit: { isDeleted: true, deletedAt: true } }
 					},
 				},
+				...user.role !== Role.ADMIN && { omit: { isDeleted: true, deletedAt: true } }
 			},
-			tenant: {
-				select: {
-					id: true,
-					name: true,
-					email: true,
-				},
+			payments: {
+				...user.role !== Role.ADMIN && {omit:{ gatewayResponse: true, }}
 			},
 		},
 	});
@@ -217,7 +211,6 @@ const getApplicationById = async (id: string, user: IRequestUser) => {
 		throw new ApiError(httpStatus.NOT_FOUND, "Application not found.");
 	}
 
-	// Ownership verification for standard users
 	if (
 		user.role !== Role.ADMIN &&
 		user.role !== Role.OWNER &&
@@ -255,14 +248,16 @@ const updateApplication = async (
 
 	const updateData: Prisma.ApplicationUpdateInput = {};
 
-	if (moveInDate !== undefined) updateData.moveInDate = moveInDate;
-	if (isPrivateLease !== undefined) updateData.isPrivateLease = isPrivateLease;
-	if (agreedRentAmount !== undefined && user.role === Role.ADMIN)
+	if (moveInDate !== undefined) {updateData.moveInDate = moveInDate;}
+	if (isPrivateLease !== undefined) {updateData.isPrivateLease = isPrivateLease;}
+	if (agreedRentAmount !== undefined && user.role === Role.ADMIN){
 		updateData.agreedRentAmount = Number(agreedRentAmount);
-	if (rentalDocumentUrl !== undefined)
+	}
+	if (rentalDocumentUrl !== undefined){
 		updateData.rentalDocumentUrl = rentalDocumentUrl;
-	if (status !== undefined) updateData.status = status;
-	if (ownerFeedback !== undefined) updateData.ownerFeedback = ownerFeedback;
+	}
+	if (status !== undefined) {updateData.status = status;}
+	if (ownerFeedback !== undefined) {updateData.ownerFeedback = ownerFeedback;}
 
 	const updatedApplication = await prisma.application.update({
 		where: { id },

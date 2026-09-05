@@ -24,27 +24,23 @@ const getOwnUserPaymentsHistory = async (user: IRequestUser) => {
 				},
 			},
 			orderBy: { createdAt: "desc" },
-			omit: {
-				gatewayResponse: true,
-				refundReason: true,
-			}
+			...user.role !== Role.ADMIN && { omit: { gatewayResponse: true, } }
 		});
 	}
 
-	const condition =
-		user.role === Role.OWNER
-			? {
-				application: {
-					room: {
-						property: {
-							ownerId: user.userId
-						}
+	const condition = user.role === Role.OWNER
+		? {
+			application: {
+				room: {
+					property: {
+						ownerId: user.userId
 					}
 				}
 			}
-			: {
-				tenantId: user.userId,
-			};
+		}
+		: {
+			tenantId: user.userId,
+		};
 
 	return prisma.payments.findMany({
 		where: condition,
@@ -60,7 +56,7 @@ const getSinglePaymentsByID = async (
 	userId: string,
 	paymentId?: string,
 ) => {
-	if (!paymentId ) {
+	if (!paymentId) {
 		throw new ApiError(
 			httpStatus.BAD_REQUEST,
 			"Either paymentId must be provided."
@@ -77,14 +73,14 @@ const getSinglePaymentsByID = async (
 					room: {
 						include: {
 							property: {
-								omit:{
+								omit: {
 									description: true,
 									isDeleted: true,
 									deletedAt: true,
 								}
 							}
 						},
-						omit:{
+						omit: {
 							isDeleted: true,
 							deletedAt: true,
 						}
@@ -92,6 +88,9 @@ const getSinglePaymentsByID = async (
 				},
 			},
 		},
+		omit: {
+			gatewayResponse: true,
+		}
 	});
 
 	if (!payment) {
@@ -188,6 +187,7 @@ const createPaymentCheckoutWithBkash = async (
 			paymentProvider: PaymentProvider.BKASH,
 			gatewayResponse: bkashPaymentCreate,
 		},
+		...user.role !== Role.ADMIN && { omit: { gatewayResponse: true } }
 	});
 
 	return {
@@ -197,7 +197,13 @@ const createPaymentCheckoutWithBkash = async (
 	};
 };
 
-const paymentBkashCallback = async (query: Record<string, any>) => {
+export const deletePayment = async (user: IRequestUser, id: string) => {
+	const payment = await PaymentUtils.getPayment(id);
+	await PaymentUtils.verifyApplicationAccess(user, payment.applicationId);
+	return prisma.payments.delete({ where: { id } });
+}
+
+export const paymentBkashCallback = async (query: Record<string, any>) => {
 	const paymentId = query.paymentID;
 
 	if (!paymentId) {
@@ -218,26 +224,19 @@ const paymentBkashCallback = async (query: Record<string, any>) => {
 
 	if (status === "failure") {
 		await prisma.payments.updateMany({
-			where: {
-				gatewayPaymentId: paymentId,
-			},
-			data: {
-				status: PaymentStatus.FAILED,
-			},
+			where: { gatewayPaymentId: paymentId },
+			data: { status: PaymentStatus.FAILED },
 		});
 
 		return {
 			redirectUrl: `${config.frontend_url}/payment/cancel?status=failed`,
 		};
 	}
+
 	if (status === "cancel") {
 		await prisma.payments.updateMany({
-			where: {
-				gatewayPaymentId: paymentId,
-			},
-			data: {
-				status: PaymentStatus.CANCEL,
-			},
+			where: { gatewayPaymentId: paymentId },
+			data: { status: PaymentStatus.CANCEL },
 		});
 
 		return {
@@ -256,28 +255,26 @@ const paymentBkashCallback = async (query: Record<string, any>) => {
 					Authorization: bkashIdToken,
 					"X-App-Key": config.bkash_app_key,
 				},
-
-				body: JSON.stringify({
-					paymentID: paymentId,
-				}),
-			},
+				body: JSON.stringify({ paymentID: paymentId }),
+			}
 		);
 
 		const executedPaymentResult = await executedPaymentResponse.json();
 
-		// Check if bKash returned an internal business logic error
 		if (executedPaymentResult?.statusCode !== "0000") {
 			await prisma.payments.updateMany({
 				where: { gatewayPaymentId: paymentId },
 				data: {
 					status: PaymentStatus.FAILED,
-					gatewayResponse: executedPaymentResult,
+					gatewayResponse: executedPaymentResult as Prisma.JsonObject,
 				},
 			});
 
 			return {
 				executedPaymentResult,
-				redirectUrl: `${config.frontend_url}/payment/cancel?status=failed&message=${encodeURIComponent(executedPaymentResult?.statusMessage || "Execution failed")}`,
+				redirectUrl: `${config.frontend_url}/payment/cancel?status=failed&message=${encodeURIComponent(
+					executedPaymentResult?.statusMessage || "Execution failed"
+				)}`,
 			};
 		}
 
@@ -293,21 +290,64 @@ const paymentBkashCallback = async (query: Record<string, any>) => {
 			}
 		}
 
-		await prisma.payments.update({
-			where: {
-				applicationId: executedPaymentResult.merchantInvoiceNumber,
-				gatewayPaymentId: paymentId,
-			},
-			data: {
-				status: PaymentStatus.COMPLETED,
-				gatewayTransactionId: executedPaymentResult.trxID,
-				paidAt: bkashPaidDate,
-				gatewayResponse: executedPaymentResult,
-			},
+		const transactionResult = await prisma.$transaction(async (tx) => {
+			const existingPayment = await tx.payments.findFirst({
+				where: { gatewayPaymentId: paymentId },
+				include: {
+					application: {
+						include: {
+							room: true,
+						},
+					},
+				},
+			});
+
+			if (!existingPayment) {
+				throw new Error(`Payment with gateway ID ${paymentId} not found.`);
+			}
+
+			if (existingPayment.status === PaymentStatus.COMPLETED) {
+				return existingPayment;
+			}
+
+			const updatedPayment = await tx.payments.update({
+				where: { id: existingPayment.id },
+				data: {
+					status: PaymentStatus.COMPLETED,
+					gatewayTransactionId: executedPaymentResult.trxID,
+					paidAt: bkashPaidDate,
+					gatewayResponse: executedPaymentResult as Prisma.JsonObject,
+				},
+			});
+
+			const application = existingPayment.application;
+			const room = application?.room;
+
+			if (application) {
+				await tx.application.update({
+					where: { id: application.id },
+					data: { status: ApplicationStatus.APPROVED },
+				});
+
+				if (room) {
+					const newCapacity = Math.max(0, room.maxCapacity - 1);
+
+					await tx.rooms.update({
+						where: { id: room.id },
+						data: {
+							maxCapacity: newCapacity,
+							isAvailable: newCapacity > 0,
+						},
+					});
+				}
+			}
+
+			return updatedPayment;
 		});
 
 		return {
 			executedPaymentResult,
+			updatedPayment: transactionResult,
 			redirectUrl: `${config.frontend_url}/payment/success?status=success&trxID=${executedPaymentResult.trxID}`,
 		};
 	}
@@ -317,11 +357,13 @@ const paymentBkashCallback = async (query: Record<string, any>) => {
 	};
 };
 
+
 export const PaymentService = {
 	createPaymentCheckoutWithBkash,
 	paymentBkashCallback,
 	getOwnUserPaymentsHistory,
 	getSinglePaymentsByID,
+	deletePayment,
 };
 
 export const PaymentUtils = {

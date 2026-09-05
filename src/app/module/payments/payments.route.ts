@@ -5,7 +5,7 @@ import { auth } from "../../middleware/checkAuth";
 
 const router = Router();
 
-// /api/payments
+// /api/v1/payments
 
 router.post(
 	"/create/bkash",
@@ -23,6 +23,12 @@ router.get(
 	"/:id",
 	auth(Role.OWNER, Role.TENANT, Role.ADMIN),
 	PaymentsController.getSinglePaymentsByID,
+);
+
+router.delete(
+	"/:id",
+	auth(Role.ADMIN),
+	PaymentsController.deletePayments,
 );
 
 router.get(
