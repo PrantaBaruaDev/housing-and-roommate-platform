@@ -17,6 +17,7 @@ model Application {
   room              Rooms             @relation(fields: [roomId], references: [id], onDelete: Cascade)
   tenant            Users             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   payments          Payments[]
+  roomOccupant      RoomOccupant?
 
   @@unique([roomId, tenantId])
   @@map("applications")

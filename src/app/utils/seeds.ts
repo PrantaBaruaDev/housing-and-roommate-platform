@@ -8,17 +8,6 @@ import { ApiError } from "../errors/ApiError";
 
 export const seedTesterAdmin = async () => {
 	try {
-		// const checkAnyCustomerRoleExist = await prisma.users.count({
-		// 	where: {
-		// 		role: Role.ADMIN,
-		// 	}
-		// });
-
-		// if(checkAnyCustomerRoleExist > 0){
-		// 	console.warn("You Have at list >1 Admin Already Exists on you database!");
-		//     return;
-		// }
-
 		const isTesterAdminExist = await prisma.users.findUnique({
 			where: {
 				email: config.tester_admin_email,
@@ -81,17 +70,6 @@ export const seedTesterAdmin = async () => {
 
 export const seedTesterOwner = async () => {
 	try {
-		// const checkAnyCustomerRoleExist = await prisma.users.count({
-		// 	where: {
-		// 		role: Role.CUSTOMER,
-		// 	}
-		// });
-
-		// if(checkAnyCustomerRoleExist > 0){
-		// 	console.warn("You Have at list >1 Customer Already Exists on you database!");
-		//     return;
-		// }
-
 		const isTesterCustomerExist = await prisma.users.findUnique({
 			where: {
 				email: config.tester_owner_email,
@@ -153,17 +131,6 @@ export const seedTesterOwner = async () => {
 
 export const seedTesterTenant = async () => {
 	try {
-		// const checkAnyCustomerRoleExist = await prisma.users.count({
-		// 	where: {
-		// 		role: Role.CUSTOMER,
-		// 	}
-		// });
-
-		// if(checkAnyCustomerRoleExist > 0){
-		// 	console.warn("You Have at list >1 Customer Already Exists on you database!");
-		//     return;
-		// }
-
 		const isTesterCustomerExist = await prisma.users.findUnique({
 			where: {
 				email: config.tester_tenant_email,

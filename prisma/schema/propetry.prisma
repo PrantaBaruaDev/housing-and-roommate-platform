@@ -16,6 +16,7 @@ model Property {
   rooms          Rooms[]
   utilitySplits  UtilitySplit[]
   flats  Flats[]
+  roomViewRequest  RoomViewingRequest[]
 
   @@index([city, isDeleted])
   @@map("properties")

@@ -6,7 +6,6 @@ import { ApiError } from "../errors/ApiError";
 
 export const validateRequest = (zodSchema: z.ZodObject) => {
 	return catchAsync((req: Request, res: Response, next: NextFunction) => {
-		// const payload = req.body ? req.body : {}
 		const payload = req.body ?? {};
 
 		const result = zodSchema.safeParse(payload);

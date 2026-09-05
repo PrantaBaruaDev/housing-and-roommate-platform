@@ -7,14 +7,14 @@ model Payments {
   status        PaymentStatus @default(PENDING)
 
   paymentProvider PaymentProvider @default(BKASH)
-  merchantInvoiceNumber String? // application id or Invoice ID
+  merchantInvoiceNumber String? 
 
   // Unified Gateway Identifiers
   gatewayPaymentId      String?         @unique 
   gatewayTransactionId  String?         @unique 
 
   // Provider-Specific Metadata
-  payerReference        String?         // Customer phone number (bKash) or billing email (Stripe)
+  payerReference        String? 
   stripeCustomerId      String?
 
   gatewayResponse      Json?
@@ -29,6 +29,7 @@ model Payments {
 
   application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   tenant        Users         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  roomOccupant        RoomOccupant?
 
   @@index([tenantId])
   @@index([applicationId])
