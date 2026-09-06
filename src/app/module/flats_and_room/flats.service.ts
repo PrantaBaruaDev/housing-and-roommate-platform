@@ -1,4 +1,4 @@
-import { BookingMode, Prisma } from "../../../generated/prisma/client";
+import { BookingMode, Prisma, Role } from "../../../generated/prisma/client";
 import { ApiError } from "../../errors/ApiError";
 import { IQuery } from "../../interface";
 import { prisma } from "../../lib/prisma";
@@ -97,7 +97,6 @@ const addRoomsToExistingFlat = async (
 		);
 	}
 
-	// Check flat existence
 	const existingFlat = await prisma.flats.findUnique({
 		where: { id: flatId },
 	});
@@ -107,7 +106,6 @@ const addRoomsToExistingFlat = async (
 	}
 
 	return await prisma.$transaction(async (tx) => {
-		// Prevent duplicate room numbers within the same flat
 		const existingRooms = await tx.rooms.findMany({
 			where: { flatId },
 			select: { roomNumber: true },
@@ -126,7 +124,6 @@ const addRoomsToExistingFlat = async (
 			}
 		}
 
-		// Insert new rooms
 		const roomDataToInsert = rooms.map((room) => ({
 			propertyId: existingFlat.propertyId,
 			flatId: existingFlat.id,
@@ -141,7 +138,6 @@ const addRoomsToExistingFlat = async (
 			data: roomDataToInsert,
 		});
 
-		// Update totalRooms counter on the flat record
 		const updatedFlat = await tx.flats.update({
 			where: { id: flatId },
 			data: {
@@ -159,12 +155,10 @@ const addRoomsToExistingFlat = async (
 };
 
 const getPropertyFlatInventory = async (query: IQuery) => {
-	const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } =
-		calculatePaginationAndSearch(query);
+	const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } = calculatePaginationAndSearch(query);
 
 	const andConditions: Prisma.PropertyWhereInput[] = [];
 
-	// Fields checked on the flats model side
 	if (searchTerm) {
 		andConditions.push({
 			flats: {
@@ -253,13 +247,23 @@ const updateFlatDetails = async (
 
 	const existingFlat = await prisma.flats.findUnique({
 		where: { id: flatId },
+		include:{property: { select: { ownerId: true }}}
 	});
 
 	if (!existingFlat) {
 		throw new ApiError(httpStatus.NOT_FOUND, "Flat not found.");
 	}
 
-	// Check duplicate flat name if renaming within the same property
+	const isAdmin = user.role === Role.ADMIN;
+    const isOwner = existingFlat.property?.ownerId === user.userId;
+
+    if (!isAdmin && !isOwner) {
+        throw new ApiError(
+            httpStatus.FORBIDDEN,
+            "You do not have permission to update this flat.",
+        );
+    }
+
 	if (
 		flatName &&
 		flatName.trim().toLowerCase() !== existingFlat.flatName.toLowerCase()
@@ -299,18 +303,27 @@ const updateRoomDetails = async (
 	payload: IUpdateRoomPayload,
 	user: IRequestUser,
 ) => {
-	const { roomNumber, rentAmount, bookingMode, maxCapacity, isAvailable } =
-		payload;
+	const { roomNumber, rentAmount, bookingMode, maxCapacity, isAvailable } = payload;
 
 	const existingRoom = await prisma.rooms.findUnique({
 		where: { id: roomId },
+		include: { property: {select:{ ownerId: true }} },
 	});
 
 	if (!existingRoom) {
 		throw new ApiError(httpStatus.NOT_FOUND, "Room not found.");
 	}
 
-	// Prevent duplicate room numbers inside the same flat
+	const isAdmin = user.role === Role.ADMIN;
+    const isOwner = existingRoom.property?.ownerId === user.userId;
+
+    if (!isAdmin && !isOwner) {
+        throw new ApiError(
+            httpStatus.FORBIDDEN,
+            "You do not have permission to update this room.",
+        );
+    }
+
 	if (
 		roomNumber &&
 		roomNumber.trim().toLowerCase() !== existingRoom.roomNumber.toLowerCase()
@@ -350,19 +363,28 @@ const updateRoomDetails = async (
 const deleteRoom = async (roomId: string, user: IRequestUser) => {
 	const existingRoom = await prisma.rooms.findUnique({
 		where: { id: roomId },
+		include: { property: {select:{ ownerId: true }} },
 	});
 
 	if (!existingRoom) {
 		throw new ApiError(httpStatus.NOT_FOUND, "Room not found.");
 	}
 
+	const isAdmin = user.role === Role.ADMIN;
+    const isOwner = existingRoom.property?.ownerId === user.userId;
+
+    if (!isAdmin && !isOwner) {
+        throw new ApiError(
+            httpStatus.FORBIDDEN,
+            "You do not have permission to update this room.",
+        );
+    }
+
 	return await prisma.$transaction(async (tx) => {
-		// Delete target room
 		await tx.rooms.delete({
 			where: { id: roomId },
 		});
 
-		// Decrement totalRooms counter on flat record
 		const updatedFlat = await tx.flats.update({
 			where: { id: existingRoom.flatId },
 			data: {

@@ -19,9 +19,7 @@ model Rooms {
   applications        Application[]
   viewingRequests     RoomViewingRequest[]
   maintenanceRequests MaintenanceRequest[]
-  // chatThreads         ChatThread[]
-
-  occupants           RoomOccupant[]   
+  occupants           RoomOccupant[] 
 
   @@index([isAvailable, rentAmount, isDeleted])
   @@map("rooms")
