@@ -14,9 +14,9 @@ model Property {
 
   owner          Users          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   rooms          Rooms[]
-  utilitySplits  UtilitySplit[]
   flats  Flats[]
   roomViewRequest  RoomViewingRequest[]
+  invoice          Invoice[]
 
   @@index([city, isDeleted])
   @@map("properties")

@@ -199,7 +199,7 @@ const createPaymentCheckoutWithBkash = async (
 
 export const deletePayment = async (user: IRequestUser, id: string) => {
 	const payment = await PaymentUtils.getPayment(id);
-	await PaymentUtils.verifyApplicationAccess(user, payment.applicationId);
+	await PaymentUtils.verifyApplicationAccess(user, payment.applicationId!);
 	return prisma.payments.delete({ where: { id } });
 }
 

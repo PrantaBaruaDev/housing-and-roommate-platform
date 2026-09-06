@@ -14,6 +14,7 @@ model RoomOccupant {
   tenant     Users    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   application  Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   payment  Payments    @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  invoice            Invoice[]
 
   @@index([roomId, tenantId, movedOutAt]) 
   @@map("room_occupant")

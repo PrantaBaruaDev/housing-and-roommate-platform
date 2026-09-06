@@ -25,6 +25,7 @@ model Users {
   auditLogs          AuditLog[]        // Actions tracked under security rule loops
   viewingRequests    RoomViewingRequest[]  // Tenant side requests
   maintenanceRequest MaintenanceRequest[]
+  invoice            Invoice[]
 
   @@unique([email])
   @@map("users")

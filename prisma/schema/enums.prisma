@@ -58,6 +58,17 @@ enum NotificationType {
   VERIFICATION_UPDATE
 }
 
+enum InvoiceType {
+  COMBINED_RENT_UTILITY
+  MAINTENANCE_FEE
+}
+
+enum BillStatus {
+  UNPAID
+  PAID
+  OVERDUE
+}
+
 enum PaymentStatus {
   PENDING
   COMPLETED

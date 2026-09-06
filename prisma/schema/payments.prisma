@@ -1,7 +1,10 @@
 model Payments {
   id            String        @id @default(uuid())
-  applicationId String  @unique
   tenantId      String
+
+  applicationId String?         @unique
+  invoiceId     String?         @unique
+
   amount        Decimal       @db.Decimal(10, 2)
   paidAt        DateTime?
   status        PaymentStatus @default(PENDING)
@@ -16,7 +19,6 @@ model Payments {
   // Provider-Specific Metadata
   payerReference        String? 
   stripeCustomerId      String?
-
   gatewayResponse      Json?
 
   refundTrxID     String?
@@ -27,12 +29,14 @@ model Payments {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application   Application?  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  invoice       Invoice?        @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   tenant        Users         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   roomOccupant        RoomOccupant?
 
   @@index([tenantId])
   @@index([applicationId])
+  @@index([invoiceId])
   @@index([gatewayPaymentId])
   @@index([gatewayTransactionId])
   @@map("payments")
