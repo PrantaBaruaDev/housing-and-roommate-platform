@@ -1,4 +1,4 @@
-import { Prisma } from "../../../generated/prisma/client";
+import { Prisma, Role } from "../../../generated/prisma/client";
 import { IQuery } from "../../interface";
 import { prisma } from "../../lib/prisma";
 import { calculatePaginationAndSearch } from "../../utils/paginationAndSearchHelper";
@@ -32,8 +32,25 @@ const getAllOwnRoomOccupantDetails = async (query: IQuery, user: IRequestUser) =
 		});
 	}
 
+    // Role-Based Filtering
+	let roleCondition: Prisma.RoomOccupantWhereInput = {};
+
+	if (user.role === Role.TENANT) {
+		roleCondition = { tenantId: user.userId };
+	} else if (user.role === Role.OWNER) {
+		roleCondition = {
+			room: {
+				property: {
+					ownerId: user.userId,
+				},
+			},
+		};
+	} else if (user.role === Role.ADMIN) {
+		roleCondition = {}; 
+	}
+
 	const whereConditions: Prisma.RoomOccupantWhereInput = {
-		tenantId: user.userId,
+		...roleCondition,
 		...(andConditions.length > 0 && { AND: andConditions }),
 	};
 

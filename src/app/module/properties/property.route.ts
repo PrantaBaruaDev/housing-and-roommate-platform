@@ -4,7 +4,7 @@ import { auth } from "../../middleware/checkAuth";
 import { PropertyController } from "./property.controller";
 import { validateRequest } from "../../middleware/validateRequest";
 import { PropertyValidation } from "./property.validation";
-import { PropertyFlatRoutes } from "../flats/flats.route";
+import { PropertyFlatRoutes } from "../flats_and_room/flats.route";
 
 const router = Router();
 
@@ -44,7 +44,6 @@ router.patch(
 
 router.patch(
 	"/:id/delete",
-	// validateRequest(PropertyValidation.PropertySoftDeleteZodSchema),
 	auth(Role.ADMIN, Role.OWNER),
 	PropertyController.softDeletePropertyByID,
 );
