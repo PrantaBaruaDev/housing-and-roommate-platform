@@ -27,5 +27,10 @@ router.get(
 );
 router.post("/refresh-token", AuthController.refreshToken);
 router.post("/logout", AuthController.logout);
+router.get(
+    "/users-list",
+    auth(Role.ADMIN), 
+   AuthController.getAllUsers,
+);
 
 export const AuthRoutes = router;

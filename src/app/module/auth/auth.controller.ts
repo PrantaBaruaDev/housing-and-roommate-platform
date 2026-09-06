@@ -164,6 +164,21 @@ const logout = catchAsync(
 	},
 );
 
+export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
+    const query = req.query;
+    const user = req.user as IRequestUser;
+
+    const result = await AuthService.getAllUsersService(query, user);
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Users retrieved successfully",
+        data: result.data,
+        meta: result.meta,
+    });
+});
+
 export const AuthController = {
 	registerUser,
 	credentialsLogin,
@@ -172,4 +187,5 @@ export const AuthController = {
 	googleCallback,
 	refreshToken,
 	logout,
+	getAllUsers,
 };

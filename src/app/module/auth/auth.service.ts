@@ -17,6 +17,9 @@ import {
 import { createUserTokens } from "../../helpers/authToken";
 import httpStatus from "http-status";
 import { ApiError } from "../../errors/ApiError";
+import { calculatePaginationAndSearch } from "../../utils/paginationAndSearchHelper";
+import { Prisma } from "../../../generated/prisma/client";
+import { IQuery } from "../../interface";
 
 const registerUser = async (payload: IRegisterPatientPayload) => {
 	const { name, password, role, imagePublicId, profilePhoto, address, phone, nid } = payload;
@@ -189,9 +192,131 @@ const refreshToken = async (token: string) => {
 	};
 };
 
+
+export const getAllUsersService = async (query: IQuery, user: IRequestUser) => {
+    if (user.role !== Role.ADMIN) {
+        throw new ApiError(
+            httpStatus.FORBIDDEN,
+            "Access denied. Only administrators can view the user list.",
+        );
+    }
+
+    const { page, limit, skip, sortBy, sortOrder, searchTerm, filterData } = calculatePaginationAndSearch(query);
+
+    const andConditions: Prisma.UsersWhereInput[] = [];
+
+    const searchableFields = ["name", "email", "phone"];
+
+    if (searchTerm) {
+        andConditions.push({
+            OR: [
+                ...searchableFields.map((field) => ({
+                    [field]: {
+                        contains: searchTerm,
+                        mode: "insensitive" as Prisma.QueryMode,
+                    },
+                })),
+                {
+                    profiles: {
+                        OR: [
+                            {
+                                phone: {
+                                    contains: searchTerm,
+                                    mode: "insensitive" as Prisma.QueryMode,
+                                },
+                            },
+                            {
+                                address: {
+                                    contains: searchTerm,
+                                    mode: "insensitive" as Prisma.QueryMode,
+                                },
+                            },
+                            {
+                                nid: {
+                                    contains: searchTerm,
+                                    mode: "insensitive" as Prisma.QueryMode,
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+        });
+    }
+
+    if (filterData && Object.keys(filterData).length > 0) {
+        const { role, status, ...otherFilters } = filterData;
+
+        if (role) {
+            andConditions.push({ role: role as Role });
+        }
+
+        if (status) {
+            andConditions.push({ status: status as UserStatus });
+        }
+
+        if (Object.keys(otherFilters).length > 0) {
+            andConditions.push({
+                AND: Object.keys(otherFilters).map((key) => ({
+                    [key]: otherFilters[key],
+                })),
+            });
+        }
+    }
+
+    const whereConditions: Prisma.UsersWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
+
+    const [users, total] = await prisma.$transaction([
+        prisma.users.findMany({
+            where: whereConditions,
+            skip,
+            take: limit,
+            orderBy: {
+                [sortBy]: sortOrder,
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                status: true,
+                emailVerified: true,
+                createdAt: true,
+                updatedAt: true,
+                profiles: {
+                    select: {
+                        id: true,
+                        phone: true,
+                        profilePhoto: true,
+                        address: true,
+                        nid: true,
+                        created_at: true,
+                        updated_at: true,
+                    },
+                },
+            },
+        }),
+        prisma.users.count({
+            where: whereConditions,
+        }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+		data: users,
+        meta: {
+            page,
+            limit,
+            total,
+            totalPages,
+        },
+    };
+};
 export const AuthService = {
 	registerUser,
 	loginUser,
 	getMe,
 	refreshToken,
+	getAllUsersService,
 };
