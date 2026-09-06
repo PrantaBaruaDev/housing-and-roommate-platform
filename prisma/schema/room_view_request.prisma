@@ -1,6 +1,7 @@
 model RoomViewingRequest {
   id           String        @id @default(uuid())
   roomId       String
+  propertyId   String
   tenantId     String
   proposedDate DateTime
   counterDate  DateTime?     // Set by Owner when rescheduling
@@ -9,6 +10,7 @@ model RoomViewingRequest {
   updatedAt    DateTime      @updatedAt
 
   room         Rooms         @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  property     Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   tenant       Users         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("room_viewing_requests")

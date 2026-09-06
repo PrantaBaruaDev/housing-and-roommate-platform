@@ -14,6 +14,7 @@ import { PaymentsRoute } from "./app/module/payments/payments.route";
 import { authRateLimiter, globalRateLimiter } from "./app/middleware/rateLimiter";
 import helmet from "helmet";
 import { RoomOccupantRoutes } from "./app/module/room_occupant/room_occupant.route";
+import { RoomViewingRequestRoutes } from "./app/module/room_viewing_request/room_viewing_request.route";
 
 const app: Application = express();
 
@@ -51,6 +52,7 @@ app.use("/api/v1/properties", PropertyRoutes);
 app.use("/api/v1/applications", ApplicationRoutes);
 app.use("/api/v1/payments", PaymentsRoute);
 app.use("/api/v1/room_occupant", RoomOccupantRoutes);
+app.use("/api/v1/room_view_request", RoomViewingRequestRoutes);
 
 app.use(globalErrorHandler);
 app.use(notFound);

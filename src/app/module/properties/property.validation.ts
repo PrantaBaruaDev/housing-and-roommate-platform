@@ -8,21 +8,7 @@ const PropertyCreateZodSchema = z.object({
 	city: z.string(),
 	isDeleted: z.boolean().optional(),
 });
-/* 
-title: z.string({
-        error: "Property title is required.",
-    }).min(1, "Title cannot be empty."),
 
-    address: z.string({
-        error: "Address is required.",
-    }).min(1, "Address cannot be empty."),
-
-    city: z.string({
-        error: "City is required.",
-    }).min(1, "City cannot be empty."),
-
-    description: z.string().optional(),
-*/
 const PropertyUpdateZodSchema = PropertyCreateZodSchema.partial();
 
 const PropertySoftDeleteZodSchema = PropertyCreateZodSchema.pick({
