@@ -8,8 +8,6 @@ const utilityDetailsItemSchema = z.object({
 
 const createInvoiceZodSchema = z.object({
     roomOccupantId: z.string({ error: "Room Occupant ID is required" }),
-    tenantId: z.string({ error: "Tenant ID is required" }),
-    propertyId: z.string({ error: "Property ID is required" }),
     billMonth: z
         .string({ error: "Bill month is required" })
         .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "billMonth must be in YYYY-MM format"),

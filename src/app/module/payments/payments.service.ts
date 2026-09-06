@@ -1,6 +1,7 @@
 import { Prisma } from "../../../generated/prisma/client";
 import {
 	ApplicationStatus,
+	BillStatus,
 	PaymentProvider,
 	PaymentStatus,
 	Role,
@@ -8,48 +9,137 @@ import {
 import { ApplicationModel } from "../../../generated/prisma/models";
 import config from "../../config";
 import { ApiError } from "../../errors/ApiError";
+import { IQuery } from "../../interface";
 import { getBkashIdToken } from "../../lib/bkash";
 import { prisma } from "../../lib/prisma";
+import { parseExecuteTime } from "../../utils/dateTimePurser";
+import { calculatePaginationAndSearch } from "../../utils/paginationAndSearchHelper";
 import { tenantSelect } from "../../utils/userSelectionUtils";
 import { IRequestUser } from "../auth/auth.interface";
 import { ICreatePaymentPayload } from "./payments.interface";
 import httpStatus from "http-status";
 
-const getOwnUserPaymentsHistory = async (user: IRequestUser) => {
-	if (user.role === Role.ADMIN) {
-		return prisma.payments.findMany({
-			include: {
-				tenant: {
-					select: tenantSelect
+const getOwnUserPaymentsHistory = async (query: IQuery, user: IRequestUser) => {
+	const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } = calculatePaginationAndSearch(query);
+	
+	const andConditions: Prisma.PaymentsWhereInput[] = [];
+	const searchableFields = ["applicationId", "invoiceId", "gatewayPaymentId", "gatewayTransactionId"];
+
+	if (user.role === Role.OWNER) {
+        andConditions.push({
+            OR: [
+                {
+                    application: {
+                        room: {
+                            property: {
+                                ownerId: user.userId,
+                            },
+                        },
+                    },
+                },
+                {
+                    invoice: {
+                        property: {
+                            ownerId: user.userId,
+                        },
+                    },
+                },
+            ],
+        });
+    } else if (user.role === Role.TENANT) {
+        andConditions.push({
+            tenantId: user.userId,
+        });
+    }
+
+
+	if (searchTerm) {
+		andConditions.push({
+			OR: searchableFields.map((field) => ({
+				[field]: {
+					contains: searchTerm,
+					mode: "insensitive",
 				},
-			},
-			orderBy: { createdAt: "desc" },
-			...user.role !== Role.ADMIN && { omit: { gatewayResponse: true, } }
+			})),
 		});
 	}
 
-	const condition = user.role === Role.OWNER
-		? {
-			application: {
-				room: {
-					property: {
-						ownerId: user.userId
-					}
-				}
-			}
-		}
-		: {
-			tenantId: user.userId,
-		};
+	if (filterData && Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: Object.keys(filterData).map((key) => ({
+                [key]: filterData[key],
+            })),
+        });
+    }
 
-	return prisma.payments.findMany({
-		where: condition,
-		orderBy: { createdAt: "desc" },
-		omit: {
-			gatewayResponse: true,
-			refundReason: true,
-		}
-	});
+	const whereConditions: Prisma.PaymentsWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
+
+	const [rawPayments, total] = await prisma.$transaction([
+		prisma.payments.findMany({
+            where: whereConditions,
+            skip,
+            take: limit,
+            orderBy: {
+                [sortBy]: sortOrder,
+            },
+            include: {
+                tenant: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+                application: {
+                    select: {
+                        id: true,
+                        room: {
+                            select: {
+                                id: true,
+                                roomNumber: true,
+                                property: {
+                                    select: {
+                                        id: true,
+                                        title: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                invoice: {
+                    select: {
+                        id: true,
+                        billMonth: true,
+                        totalAmount: true,
+                    },
+                },
+            },
+        }),
+        prisma.payments.count({
+            where: whereConditions,
+        }),
+	]);
+
+	const sanitizedPayments = rawPayments.map((payment) => {
+        if (user.role !== Role.ADMIN) {
+            const { gatewayResponse, ...rest } = payment as any;
+            return rest;
+        }
+        return payment;
+    });
+
+	const totalPage = Math.ceil(total / limit);
+
+	return {
+		data: sanitizedPayments,
+        meta: {
+            page,
+            limit,
+            total,
+            totalPage,
+        },
+    };
 }
 
 const getSinglePaymentsByID = async (
@@ -115,49 +205,87 @@ const createPaymentCheckoutWithBkash = async (
 	user: IRequestUser,
 	payload: ICreatePaymentPayload,
 ) => {
-	const tenantApplication = await PaymentUtils.verifyApplicationAccess(
-		user,
-		payload.applicationId,
-	);
+	let amount = 0;
+    let applicationId: string | undefined = payload.applicationId;
+    let invoiceId: string | undefined = payload.invoiceId;
 
-	if (tenantApplication.status !== ApplicationStatus.APPROVED) {
-		throw new ApiError(
-			httpStatus.FORBIDDEN,
-			"Forbidden, Payment rejected the application is not approved by owner",
+	if (!invoiceId && !applicationId) {
+        throw new ApiError(
+            httpStatus.BAD_REQUEST,
+            "Either applicationId or invoiceId must be provided.",
+        );
+    }
+
+	if (invoiceId) {
+        const invoice = await prisma.invoice.findUnique({
+            where: { id: invoiceId },
+        });
+
+        if (!invoice) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Invoice not found.");
+        }
+
+        if (invoice.status === BillStatus.PAID) {
+            throw new ApiError(httpStatus.BAD_REQUEST, "Invoice is already paid.");
+        }
+
+        if (user.role === Role.TENANT && invoice.tenantId !== user.userId) {
+            throw new ApiError(httpStatus.FORBIDDEN, "Forbidden: You do not own this invoice.");
+        }
+
+		const existingCompleted = await prisma.payments.findFirst({
+            where: { invoiceId, status: PaymentStatus.COMPLETED },
+        });
+
+        if (existingCompleted) {
+            return {
+                payment: existingCompleted,
+                checkoutUrl: null,
+                message: "Invoice payment is already completed.",
+            };
+        }
+
+        amount = Number(invoice.totalAmount);
+        applicationId = undefined;
+    }
+
+	else if (applicationId) {
+		const tenantApplication = await PaymentUtils.verifyApplicationAccess(
+			user,
+			applicationId,
 		);
+
+		if (tenantApplication.status !== ApplicationStatus.APPROVED) {
+			throw new ApiError(
+				httpStatus.FORBIDDEN,
+				"Forbidden, Payment rejected the application is not approved by owner",
+			);
+		}
+
+		const existingPayment = await prisma.payments.findFirst({
+			where: { applicationId: tenantApplication.id },
+		});
+
+		if (existingPayment?.status === PaymentStatus.COMPLETED) {
+			return {
+				payment: existingPayment,
+				checkoutUrl: null,
+				message: "Payment already completed.",
+			};
+		}
+
+		amount = Number(tenantApplication.agreedRentAmount);
 	}
 
-	const amount = Number(tenantApplication.agreedRentAmount);
-
-	const userFetch = await prisma.users.findFirstOrThrow({
-		where: { id: tenantApplication.tenantId },
-		select: {
-			id: true,
-			email: true,
-			name: true,
-			role: true,
-		},
-	});
-
-	const existingPayment = await prisma.payments.findFirst({
-		where: { applicationId: tenantApplication.id },
-	});
-
-	if (existingPayment?.status === PaymentStatus.COMPLETED) {
-		return {
-			payment: existingPayment,
-			checkoutUrl: null,
-			message: "Payment already completed.",
-		};
-	}
+	const merchantInvoiceNo = invoiceId ? invoiceId : applicationId;
 
 	const bkashPayload = {
-		applicationId: tenantApplication.id,
+		applicationId: merchantInvoiceNo,
 		payAmount: amount,
-		payerReference: userFetch.email,
+		payerReference: user.email,
 	};
-	const bkashPaymentCreate =
-		await PaymentUtils.paymentBkashGearRent(bkashPayload);
+
+	const bkashPaymentCreate = await PaymentUtils.paymentBkashHomeRent(bkashPayload);
 
 	if (bkashPaymentCreate?.statusCode !== "0000") {
 		throw new ApiError(
@@ -166,8 +294,12 @@ const createPaymentCheckoutWithBkash = async (
 		);
 	}
 
+	const existingPayment = await prisma.payments.findFirst({
+        where: invoiceId ? { invoiceId } : { applicationId },
+    });
+
 	const payment = await prisma.payments.upsert({
-		where: { applicationId: tenantApplication.id },
+		where: { id: existingPayment?.id || ""},
 		update: {
 			tenantId: user.userId,
 			amount: new Prisma.Decimal(amount),
@@ -179,20 +311,24 @@ const createPaymentCheckoutWithBkash = async (
 		},
 		create: {
 			tenantId: user.userId,
-			applicationId: tenantApplication.id,
+			applicationId: applicationId || null,
+			invoiceId: invoiceId || null,
 			amount: new Prisma.Decimal(amount),
 			status: PaymentStatus.PENDING,
 			gatewayPaymentId: bkashPaymentCreate.paymentID,
 			payerReference: user.email,
 			paymentProvider: PaymentProvider.BKASH,
 			gatewayResponse: bkashPaymentCreate,
-		},
-		...user.role !== Role.ADMIN && { omit: { gatewayResponse: true } }
+		}
 	});
+
+	if (user.role !== Role.ADMIN && payment.gatewayResponse) {
+        delete (payment as Record<string, any>).gatewayResponse;
+    }
 
 	return {
 		paymentUrl: bkashPaymentCreate.bkashURL,
-		paymentCreate: payment,
+		payment,
 		message: "bKash payment link generated successfully.",
 	};
 };
@@ -207,35 +343,19 @@ export const paymentBkashCallback = async (query: Record<string, any>) => {
 	const paymentId = query.paymentID;
 	const status = query.status;
 
-	if (!paymentId) {
-		throw new Error("Payment Id Missing");
-	}
+	if (!paymentId) throw new ApiError(httpStatus.BAD_REQUEST, "Payment Id Missing");
+	if (!status) throw new ApiError(httpStatus.NOT_FOUND, "Payment Status is Missing");
 
-	if (!status) {
-		throw new Error("Payment Status is Missing");
-	}
-
-	if (status === "failure") {
-		await prisma.payments.updateMany({
-			where: { gatewayPaymentId: paymentId },
-			data: { status: PaymentStatus.FAILED },
-		});
-
-		return {
-			redirectUrl: `${config.frontend_url}/payment/cancel?status=failed`,
-		};
-	}
-
-	if (status === "cancel") {
-		await prisma.payments.updateMany({
-			where: { gatewayPaymentId: paymentId },
-			data: { status: PaymentStatus.CANCEL },
-		});
-
-		return {
-			redirectUrl: `${config.frontend_url}/payment/cancel?status=cancel`,
-		};
-	}
+	if (status === "failure" || status === "cancel") {
+        const mappedStatus = status === "failure" ? PaymentStatus.FAILED : PaymentStatus.CANCEL;
+        await prisma.payments.updateMany({
+            where: { gatewayPaymentId: paymentId },
+            data: { status: mappedStatus },
+        });
+        return {
+            redirectUrl: `${config.frontend_url}/payment/cancel?status=${status}`,
+        };
+    }
 
 	if (status !== "success") {
 		return {
@@ -243,23 +363,8 @@ export const paymentBkashCallback = async (query: Record<string, any>) => {
 		};
 	}
 
-	const existingPayment = await prisma.payments.findFirst({
-        where: { gatewayPaymentId: paymentId },
-        include: { application: true },
-    });
-
-	if (!existingPayment) {
-        throw new Error(`Payment with gateway ID ${paymentId} not found.`);
-    }
-
-    if (existingPayment.status === PaymentStatus.COMPLETED) {
-        return {
-            redirectUrl: `${config.frontend_url}/payment/success?status=success&trxID=${existingPayment.gatewayTransactionId}`,
-        };
-    }
-
 	const bkashIdToken = await getBkashIdToken();
-	if (!bkashIdToken) throw new ApiError(undefined,"No Bkash Access Token Found!");
+	if (!bkashIdToken) throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "No Bkash Access Token Found!");
 
 	const executedPaymentResponse = await fetch(
 		`${config.bkash_base_url}/tokenized/checkout/execute`,
@@ -275,62 +380,52 @@ export const paymentBkashCallback = async (query: Record<string, any>) => {
 		}
 	);
 
+	if (!executedPaymentResponse.ok) {
+		throw new ApiError(httpStatus.BAD_GATEWAY, "Failed to execute payment with bKash API.");
+	}
+
 	const executedPaymentResult = await executedPaymentResponse.json();
 
-	if (executedPaymentResult?.statusCode !== "0000") {
-		await prisma.payments.update({
-			where: { id: existingPayment.id },
-			data: {
-				status: PaymentStatus.FAILED,
-				gatewayResponse: executedPaymentResult as Prisma.JsonObject,
-			},
-		});
+	return await prisma.$transaction(async (tx) => {
+		const existingPayment = await tx.payments.findFirst({
+            where: { gatewayPaymentId: paymentId },
+            include: {
+                application: { include: { room: true } },
+                invoice: true,
+            },
+        });
 
-		return {
-			executedPaymentResult,
-			redirectUrl: `${config.frontend_url}/payment/cancel?status=failed&message=${encodeURIComponent(
-				executedPaymentResult?.statusMessage || "Execution failed"
-			)}`,
-		};
-	}
+		if (!existingPayment) throw new ApiError(httpStatus.NOT_FOUND, `Payment with gateway ID ${paymentId} not found.`);
 
-	let bkashPaidDate = new Date();
-	if (executedPaymentResult?.paymentExecuteTime) {
-		const formatted = executedPaymentResult.paymentExecuteTime
-			.replace(/:(\d{3})\sGMT/, ".$1")
-			.replace(/\sGMT/, "");
-
-		const parsedDate = new Date(formatted);
-		if (!isNaN(parsedDate.getTime())) {
-			bkashPaidDate = parsedDate;
-		}
-	}
-
-	const transactionResult = await prisma.$transaction(async (tx) => {
-		const freshPayment = await tx.payments.findUnique({
-			where: { id: existingPayment.id },
-			include: {
-				application: {
-					include: {
-						room: true,
-					},
-				},
-			},
-		});
-
-		if (!freshPayment || existingPayment.status === PaymentStatus.COMPLETED) {
-			return freshPayment;
-		}
-
-		const application = freshPayment.application;
-		const room = application?.room;
-
-		if (!application || !room) {
-            throw new Error("Associated application or room missing for this payment.");
+		if (existingPayment.status === PaymentStatus.COMPLETED) {
+            return {
+                executedPaymentResult,
+                updatedPayment: existingPayment,
+                redirectUrl: `${config.frontend_url}/payment/success?status=success&trxID=${existingPayment.gatewayTransactionId}`,
+            };
         }
 
+		if (executedPaymentResult?.statusCode !== "0000") {
+            await tx.payments.update({
+                where: { id: existingPayment.id },
+                data: {
+                    status: PaymentStatus.FAILED,
+                    gatewayResponse: executedPaymentResult as Prisma.JsonObject,
+                },
+            });
+
+            return {
+                executedPaymentResult,
+                redirectUrl: `${config.frontend_url}/payment/cancel?status=failed&message=${encodeURIComponent(
+                    executedPaymentResult?.statusMessage || "Execution failed"
+                )}`,
+            };
+        }
+
+		let bkashPaidDate = parseExecuteTime(executedPaymentResult.paymentExecuteTime);
+
 		const updatedPayment = await tx.payments.update({
-			where: { id: freshPayment.id },
+			where: { id: existingPayment.id },
 			data: {
 				status: PaymentStatus.COMPLETED,
 				gatewayTransactionId: executedPaymentResult.trxID,
@@ -342,23 +437,24 @@ export const paymentBkashCallback = async (query: Record<string, any>) => {
 			}
 		});
 
-		if (application) {
+		if (existingPayment.invoiceId) {
+			await tx.invoice.update({
+				where: { id: existingPayment.invoiceId },
+				data: {
+					status: BillStatus.PAID,
+				},
+			});
+		}
+		else if (existingPayment.applicationId && existingPayment.application) {
+			const application = existingPayment.application;
+			const room = application?.room;
+
+			if (!room) throw new ApiError(httpStatus.NOT_FOUND, "Associated room missing for this payment.");
+
 			await tx.application.update({
 				where: { id: application.id },
 				data: { status: ApplicationStatus.APPROVED },
 			});
-
-			if (room) {
-				const newCapacity = Math.max(0, room.maxCapacity - 1);
-
-				await tx.rooms.update({
-					where: { id: room.id },
-					data: {
-						maxCapacity: newCapacity,
-						isAvailable: newCapacity > 0,
-					},
-				});
-			}
 
 			await tx.roomOccupant.upsert({
 				where: { applicationId: application.id },
@@ -376,14 +472,12 @@ export const paymentBkashCallback = async (query: Record<string, any>) => {
 			});
 		}
 
-		return updatedPayment;
+		return {
+			executedPaymentResult,
+			updatedPayment,
+			redirectUrl: `${config.frontend_url}/payment/success?status=success&trxID=${executedPaymentResult.trxID}`,
+		};
 	});
-
-	return {
-		executedPaymentResult,
-		updatedPayment: transactionResult,
-		redirectUrl: `${config.frontend_url}/payment/success?status=success&trxID=${executedPaymentResult.trxID}`,
-	};
 };
 
 
@@ -434,7 +528,7 @@ export const PaymentUtils = {
 		);
 	},
 
-	paymentBkashGearRent: async (payload: Record<string, any>) => {
+	paymentBkashHomeRent: async (payload: Record<string, any>) => {
 		const { applicationId, payAmount, payerReference } = payload;
 
 		const bkashIdToken = await getBkashIdToken();

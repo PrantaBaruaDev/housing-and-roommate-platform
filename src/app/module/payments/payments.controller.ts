@@ -9,7 +9,8 @@ import { IRequestUser } from "../auth/auth.interface";
 const getOwnUserPaymentsHistory = catchAsync(
 	async (req: Request, res: Response, next: NextFunction) => {
 		const user = req.user as IRequestUser;
-		const payments = await PaymentService.getOwnUserPaymentsHistory(user);
+		const query = req.query;
+		const payments = await PaymentService.getOwnUserPaymentsHistory(query, user);
 
 		sendResponse(res, {
 			success: true,
