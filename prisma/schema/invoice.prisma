@@ -1,0 +1,32 @@
+model Invoice {
+    id                  String        @id @default(uuid())
+    roomOccupantId      String
+    tenantId            String
+    propertyId          String
+
+    billMonth           String        // Format: "YYYY-MM"
+    type                InvoiceType   @default(COMBINED_RENT_UTILITY)
+
+    rentAmount          Decimal       @db.Decimal(10, 2)
+    utilityAmount       Decimal       @db.Decimal(10, 2) 
+    totalAmount         Decimal       @db.Decimal(10, 2) 
+
+    // JSON field storing granular itemized breakdown of utilities
+    utilityDetails      Json? 
+
+    dueDate             DateTime
+    status              BillStatus    @default(UNPAID)
+
+    createdAt           DateTime      @default(now())
+    updatedAt           DateTime      @updatedAt
+
+    // Relations
+    roomOccupant        RoomOccupant  @relation(fields: [roomOccupantId], references: [id], onDelete: Cascade)
+    tenant              Users         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+    property            Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+    payment             Payments?  
+
+    @@unique([roomOccupantId, billMonth])
+    @@index([tenantId, status])
+    @@map("invoices")
+}
