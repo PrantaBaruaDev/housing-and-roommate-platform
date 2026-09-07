@@ -18,7 +18,6 @@ model Rooms {
   flats               Flats                @relation(fields: [flatId], references: [id], onDelete: Cascade)
   applications        Application[]
   viewingRequests     RoomViewingRequest[]
-  maintenanceRequests MaintenanceRequest[]
   occupants           RoomOccupant[] 
 
   @@index([isAvailable, rentAmount, isDeleted])

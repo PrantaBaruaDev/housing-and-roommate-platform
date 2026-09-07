@@ -16,15 +16,12 @@ model Users {
 
   profiles      Profiles?
   payments      Payments[]
-  notification  Notification[]
 
   properties         Property[]        // Available for OWNER role
   roomOccupant       RoomOccupant[]        // Available for OWNER role
   applications       Application[]     // Available for CUSTOMER (Tenant) role
   // sentMessages       Message[]         // For in-app chat engine
-  auditLogs          AuditLog[]        // Actions tracked under security rule loops
-  viewingRequests    RoomViewingRequest[]  // Tenant side requests
-  maintenanceRequest MaintenanceRequest[]
+  viewingRequests    RoomViewingRequest[]  
   invoice            Invoice[]
 
   @@unique([email])
