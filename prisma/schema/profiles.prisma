@@ -7,7 +7,7 @@ model Profiles {
     phone           String? @db.VarChar(20)
     nid             String? 
 
-    isSearchingRoommate Boolean            @default(false) // Toggle to opt-in to matching
+    isSearchingRoommate Boolean            @default(false) 
     maxBudget           Decimal?           @db.Decimal(10, 2)
     preferredCity       String?
     cleanlinessLevel    CleanLinesLevel?

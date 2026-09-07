@@ -1,0 +1,1182 @@
+{
+  "info": {
+    "_postman_id": "a550d5a4-7e03-4400-ba0a-724d9c7368b0",
+    "name": "Housing & Roommate Platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "33048826"
+  },
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "credential login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Ensure the request was successful\r\nif (pm.response.code === 200) {\r\n    const responseData = pm.response.json();\r\n    \r\n    // Safely extract the token based on your response structure\r\n    const token = responseData?.data?.accessToken || responseData?.accessToken;\r\n    \r\n    if (token) {\r\n        // Automatically save/update the variable in your collection\r\n        pm.collectionVariables.set(\"accessToken\", token);\r\n        console.log(\"✅ Access token saved automatically to collection variable!\");\r\n    } else {\r\n        console.warn(\"⚠️ Login succeeded, but no accessToken was found in the response body.\");\r\n    }\r\n}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\r\n{ // Owner\r\n    \"email\": \"testerowner@gmail.com\", \r\n    \"password\": \"Tester@owner12345\"\r\n}\r\n\r\n// { // Admin\r\n//     \"email\": \"testeradmin@gmail.com\", \r\n//     \"password\": \"Tester@admin12345\"\r\n// }\r\n\r\n\r\n// { // Customer\r\n//     \"email\": \"tester.tenant@gmail.com\", \r\n//     \"password\": \"Tester@subscribercustomer12345\"\r\n// }\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/login",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/me",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "users list (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/users-list",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "users-list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "google",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/google",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "google"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// https://gear-up-bay.vercel.app\r\n\r\n// { // Super Admin\r\n//     \"email\": \"superadmin@gmail.com\", \r\n//     \"password\": \"Super@admin12345\"\r\n// }\r\n\r\n// { // Admin\r\n//     \"email\": \"testeradmin@gmail.com\", \r\n//     \"password\": \"Tester@admin12345\"\r\n// }\r\n\r\n/* \r\nTESTER_ADMIN_NAME=Tester Admin 1\r\nTESTER_ADMIN_EMAIL=testeradmin@gmail.com\r\nTESTER_ADMIN_PASSWORD=Tester@admin12345\r\n\r\nTESTER_OWNER_NAME=Tester Owner 1\r\nTESTER_OWNER_EMAIL=testerowner@gmail.com\r\nTESTER_OWNER_PASSWORD=Tester@owner12345\r\n\r\n\r\nTESTER_TENANT_NAME=Tester Tenant 1\r\nTESTER_TENANT_EMAIL=tester.tenant@gmail.com\r\nTESTER_TENANT_PASSWORD=Tester@subscribercustomer12345\r\n\r\n */\r\n{ // Customer\r\n    \"email\": \"tester.tenant@gmail.com\", \r\n    \"password\": \"Tester@subscribercustomer12345\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/logout",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\r\n// {\r\n//     \"name\": \"Pranta Barua\", \r\n//     \"email\": \"pranta.admin@mail.com\", \r\n//     \"password\": \"1234\", \r\n//     // \"role\": \"ADMIN\", \r\n//     \"profilePhoto\": \"www.testimage.com\", \r\n//     \"address\": \"Chittagong\", \r\n//     \"phone\": \"012564565\",\r\n//     \"nid\": \"1565652\"\r\n// }\r\n\r\n\r\n{   \r\n    \"name\": \"Pranta2 Barua\", \r\n    \"email\": \"pranta2.owner@mail.com\", \r\n    \"password\": \"1234\", \r\n    \"role\": \"OWNER\", \r\n    \"profilePhoto\": \"www.testimage.com\", \r\n    \"address\": \"Chittagong\", \r\n    \"phone\": \"012564565\",\r\n    \"nid\": \"534134\"\r\n}\r\n\r\n\r\n// {   \r\n//     \"name\": \"Rakib\", \r\n//     \"email\": \"rakib.provider@mail.com\", \r\n//     \"password\": \"1234\", \r\n//     \"role\": \"OWNER\", \r\n//     \"profilePhoto\": \"www.testimage.com\", \r\n//     \"address\": \"Dhaka\", \r\n//     \"phone\": \"013423565\"\r\n// }\r\n\r\n\r\n// {\r\n//     \"name\": \"Prince Barua\", \r\n//     \"email\": \"prince@mail.com\", \r\n//     \"password\": \"1234\", \r\n//     \"role\": \"OWNER\", \r\n//     \"profilePhoto\": \"www.testimage.com\", \r\n//     \"address\": \"Chittagong\", \r\n//     \"phone\": \"012564565\"\r\n// }\r\n\r\n\r\n// {\r\n//     \"name\": \"Mahabub Hassan\", \r\n//     \"email\": \"mahabub@mail.com\", \r\n//     \"password\": \"1234\", \r\n//     // \"role\": \"TENANT\", \r\n//     \"profilePhoto\": \"www.testimage.com\", \r\n//     \"address\": \"Barishal\", \r\n//     \"phone\": \"665445\"\r\n// }\r\n\r\n\r\n// {\r\n//     \"name\": \"Tanvir Ahmed\", \r\n//     \"email\": \"tanvir@mail.com\", \r\n//     \"password\": \"1234\", \r\n//     \"role\": \"TENANT\", \r\n//     \"profilePhoto\": \"www.testimage.com\", \r\n//     \"address\": \"Rajshahi\", \r\n//     \"phone\": \"2345324\"\r\n// }\r\n\r\n\r\n// {\r\n//     \"name\": \"Pranta Barua\", \r\n//     \"email\": \"baruapranta765@gmail.com\", \r\n//     \"password\": \"1234\", \r\n//     // \"role\": \"TENANT\", \r\n//     \"profilePhoto\": \"\", \r\n//     \"address\": \"Chittagong\", \r\n//     \"phone\": \"2345324\"\r\n// }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/register",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "refresh-token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/refresh-token",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh-token"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "properties",
+      "item": [
+        {
+          "name": "create property",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\r\n// {\r\n//     \"title\": \"Modern 3BR Apartment in Gulshan 2\",\r\n//     \"description\": \"Luxurious fully furnished 3-bedroom apartment featuring modern interior design, high-speed elevators, 24/7 security, backup generator, and a scenic lake view.\",\r\n//     \"address\": \"House 12, Road 45, Gulshan 2\",\r\n//     \"city\": \"Dhaka\"\r\n// }\r\n\r\n{\r\n\"title\": \"Spacious Commercial Office Space in Agrabad\",\r\n\"description\": \"Prime commercial office space located in the heart of Chattogram's business hub. Offers open floor plan, central air conditioning, and dedicated basement parking.\",\r\n\"address\": \"45 Agrabad Commercial Area\",\r\n\"city\": \"Chattogram\"\r\n}\r\n\r\n// {\r\n// \"title\": \"Cozy Duplex Family Home near Zindabazar\",\r\n// \"description\": \"Charming 4-bedroom duplex house with a private garden, rooftop terrace, and wide garage space. Situated in a peaceful residential neighborhood.\",\r\n// \"address\": \"Lane 3, Nayasarak Road, Zindabazar\",\r\n// \"city\": \"Sylhet\"\r\n// },\r\n// {\r\n// \"title\": \"Affordable Bachelor Shared Flat near Rajshahi University\",\r\n// \"description\": \"Well-lit and ventilated 2-bedroom shared apartment ideal for university students or job holders. Includes attached balconies and high-speed Wi-Fi setup.\",\r\n// \"address\": \"House 88, Binodpur Bazaar Road\",\r\n// \"city\": \"Rajshahi\"\r\n// },\r\n// {\r\n// \"title\": \"Riverside 2BR Flat in Khulna Sadar\",\r\n// \"description\": \"Comfortable 2-bedroom residential flat with modern fittings, south-facing balcony for natural light, and easy access to public transport and markets.\",\r\n// \"address\": \"72 KDA Avenue, Mojgunni\",\r\n// \"city\": \"Khulna\"\r\n// }\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get all property (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "af8e8fbb-25ac-4b46-8ac9-9c012655f97e",
+                  "disabled": true
+                },
+                {
+                  "key": "title",
+                  "value": "Spacious Commercial Office Space in Agrabad",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get all deleted property (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/is-deleted",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                "is-deleted"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "af8e8fbb-25ac-4b46-8ac9-9c012655f97e",
+                  "disabled": true
+                },
+                {
+                  "key": "title",
+                  "value": "Spacious Commercial Office Space in Agrabad",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get property by id (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "fsd"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get all property (owner)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/owner",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                "owner"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update property",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\r\n{\r\n    \"isDeleted\": true\r\n}\r\n\r\n// {\r\n//     \"title\": \"Modern 3BR Apartment in Gulshan 2\",\r\n//     \"description\": \"Luxurious fully furnished 3-bedroom apartment featuring modern interior design, high-speed elevators, 24/7 security, backup generator, and a scenic lake view.\",\r\n//     \"address\": \"House 12, Road 45, Gulshan 2\",\r\n//     \"city\": \"Dhaka\"\r\n// }\r\n\r\n// {\r\n// \"title\": \"Spacious Commercial Office Space in Agrabad\",\r\n// \"description\": \"Prime commercial office space located in the heart of Chattogram's business hub. Offers open floor plan, central air conditioning, and dedicated basement parking.\",\r\n// \"address\": \"45 Agrabad Commercial Area\",\r\n// \"city\": \"Chattogram\"\r\n// }\r\n\r\n// {\r\n// \"title\": \"Cozy Duplex Family Home near Zindabazar\",\r\n// \"description\": \"Charming 4-bedroom duplex house with a private garden, rooftop terrace, and wide garage space. Situated in a peaceful residential neighborhood.\",\r\n// \"address\": \"Lane 3, Nayasarak Road, Zindabazar\",\r\n// \"city\": \"Sylhet\"\r\n// }\r\n\r\n// {\r\n// \"title\": \"Affordable Bachelor Shared Flat near Rajshahi University\",\r\n// \"description\": \"Well-lit and ventilated 2-bedroom shared apartment ideal for university students or job holders. Includes attached balconies and high-speed Wi-Fi setup.\",\r\n// \"address\": \"House 88, Binodpur Bazaar Road\",\r\n// \"city\": \"Rajshahi\"\r\n// }\r\n// {\r\n// \"title\": \"Riverside 2BR Flat in Khulna Sadar\",\r\n// \"description\": \"Comfortable 2-bedroom residential flat with modern fittings, south-facing balcony for natural light, and easy access to public transport and markets.\",\r\n// \"address\": \"72 KDA Avenue, Mojgunni\",\r\n// \"city\": \"Khulna\"\r\n// }\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "7fa6c078-7f6d-44da-9b44-4561cdd53006"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "soft delete property",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/:id/delete",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                ":id",
+                "delete"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "7fa6c078-7f6d-44da-9b44-4561cdd53006"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete property",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "69666e72-8d9f-412c-88c2-139c037f637f"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "flat and room",
+      "item": [
+        {
+          "name": "create flat & room",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"propertyId\": \"7fa6c078-7f6d-44da-9b44-4561cdd53006\",\r\n    \"flatName\": \"F-A2B\",\r\n    \"floorNumber\": 2,\r\n    \"rooms\": [\r\n        {\r\n            \"roomNumber\": \"Main Unit (Master Badroom)\",\r\n            \"rentAmount\": 5000,\r\n            \"bookingMode\": \"BOOK_BY_ROOM\",\r\n            \"maxCapacity\": 1\r\n        },\r\n        {\r\n            \"roomNumber\": \"F-A2B-1\",\r\n            \"rentAmount\": 12000,\r\n            \"bookingMode\": \"BOOK_BY_SEAT\",\r\n            \"maxCapacity\": 5\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/flat",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                "flat"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add room to the flat",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"flatId\": \"5ba6bd16-6da7-465a-b55a-7bea52edafaf\",\r\n    \"rooms\": [\r\n        {\r\n            \"roomNumber\": \"F-A2B-2\",\r\n            \"rentAmount\": 1000,\r\n            \"bookingMode\": \"BOOK_BY_SEAT\",\r\n            \"maxCapacity\": 1\r\n        },\r\n        {\r\n            \"roomNumber\": \"F-A2B-3\",\r\n            \"rentAmount\": 2000,\r\n            \"bookingMode\": \"BOOK_BY_SEAT\",\r\n            \"maxCapacity\": 2\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/flat/add-rooms",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                "flat",
+                "add-rooms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get flat & room",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/flat",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                "flat"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "flat update",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"flatName\": \"Test Update Falt Name\",\r\n    \"floorNumber\": 999\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/flat/edit/:flatId",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                "flat",
+                "edit",
+                ":flatId"
+              ],
+              "variable": [
+                {
+                  "key": "flatId",
+                  "value": "5ba6bd16-6da7-465a-b55a-7bea52edafaf"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "flat room update",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"roomNumber\": \"F-A2B-R2 (Drawing Room)\",\r\n    // \"rentAmount\": 0,\r\n    // \"bookingMode\": \"\",\r\n    // \"maxCapacity\": 0,\r\n    \"isAvailable\": true\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/flat/room/edit/:roomId",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                "flat",
+                "room",
+                "edit",
+                ":roomId"
+              ],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "fcf59241-a3d5-4566-9c10-5f5aaea174e1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "flat room delete",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/flat/room/delete/:roomId",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                "flat",
+                "room",
+                "delete",
+                ":roomId"
+              ],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": "1b9e74fc-b0a0-4565-bbe0-539f383e9f89"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "applications",
+      "item": [
+        {
+          "name": "create application",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"roomId\": \"3ee7952d-090d-4ad8-acf7-1a9e15367d34\",\r\n  \"moveInDate\": \"10-01-2026\",\r\n  \"isPrivateLease\": false,\r\n  \"agreedRentAmount\": 5000\r\n//   \"status\": \"PENDING\"\r\n//   \"rentalDocumentUrl\": \"https://res.cloudinary.com/demo/image/upload/v1710000000/lease_contract.pdf\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/applications",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "applications"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get all application",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/applications",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "applications"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get single application",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/applications/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "applications",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "657fe650-3187-4f98-af03-8320d2f66c6d"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update application",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n//   \"roomId\": \"e9986a34-e4f4-4044-9eff-283903e2b0f2\",\r\n//   \"moveInDate\": \"10-01-2026\",\r\n//   \"isPrivateLease\": false,\r\n//   \"agreedRentAmount\": 1000\r\n  \"status\": \"APPROVED\"\r\n//   \"rentalDocumentUrl\": \"https://res.cloudinary.com/demo/image/upload/v1710000000/lease_contract.pdf\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/applications/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "applications",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "5b9dc33a-93a4-406d-a86c-b4555decc081"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete application",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/applications/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "applications",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "657fe650-3187-4f98-af03-8320d2f66c6d"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "payment",
+      "item": [
+        {
+          "name": "create payment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// apply only one and other will be comment.\r\n{\r\n    // \"applicationId\": \"5b9dc33a-93a4-406d-a86c-b4555decc081\"\r\n    \"invoiceId\": \"71e95b45-b5fd-4070-a118-18f9fcde5809\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/payments/create/bkash",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                "create",
+                "bkash"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get own payment history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/payments/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get own single details payment history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/payments/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "3ad561bf-cbf0-445d-98b9-35404a7bc4c5"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete payments",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/payments/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "f7376c06-53f0-49a2-a93a-cd4d04568857"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "room_occupant",
+      "item": [
+        {
+          "name": "get own all room occupant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"roomId\": \"e9986a34-e4f4-4044-9eff-283903e2b0f2\",\r\n  \"moveInDate\": \"10-01-2026\",\r\n  \"isPrivateLease\": false,\r\n  \"agreedRentAmount\": 15000\r\n//   \"status\": \"PENDING\"\r\n//   \"rentalDocumentUrl\": \"https://res.cloudinary.com/demo/image/upload/v1710000000/lease_contract.pdf\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/room_occupant",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "room_occupant"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "room_view_request",
+      "item": [
+        {
+          "name": "create all room view request",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"roomId\": \"fcf59241-a3d5-4566-9c10-5f5aaea174e1\",\r\n    \"proposedDate\": \"10-01-2027\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/room_view_request",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "room_view_request"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get own all room view request",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/room_view_request",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "room_view_request"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "OWNER_RESCHEDULED",
+                  "description": "OWNER_RESCHEDULED, PENDING, ",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get single room view request",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/room_view_request/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "room_view_request",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "b368d452-29bb-4af0-a5f2-eacc7785608e"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update room view request",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    // \"proposedDate\": \"10-01-2026\",\r\n    // \"counterDate\": \"15-01-2026\"\r\n    \"status\": \"APPROVED\" // PENDING, OWNER_RESCHEDULED, APPROVED, REJECTED\r\n}\r\n\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/room_view_request/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "room_view_request",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "b368d452-29bb-4af0-a5f2-eacc7785608e"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "invoice",
+      "item": [
+        {
+          "name": "create invoice",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"roomOccupantId\": \"7e015bfa-eb69-450d-aacf-ecff65f08750\",\r\n  \"type\": \"COMBINED_RENT_UTILITY\",\r\n  \"billMonth\": \"2026-09\",\r\n  \"rentAmount\": 5000,\r\n  \"utilityDetails\": [\r\n    { \"name\": \"Electricity\", \"amount\": 1200 },\r\n    { \"name\": \"Gas\", \"amount\": 800 }\r\n  ],\r\n  \"dueDate\": \"2026-09-10T23:59:59.000Z\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/invoice",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoice"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get own all invoice",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/invoice",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoice"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get single invoice",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/invoice/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoice",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "d589ef1f-b87d-404f-a540-8162ce378b6a"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update invoice",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"type\": \"COMBINED_RENT_UTILITY\",\r\n  \"billMonth\": \"2026-10\",\r\n  \"rentAmount\": 5000,\r\n  \"utilityDetails\": [\r\n    { \"name\": \"Electricity\", \"amount\": 1200 },\r\n    { \"name\": \"Gas\", \"amount\": 800 }\r\n  ],\r\n  \"dueDate\": \"2026-10-10T23:59:59.000Z\",\r\n  \"status\": \"UNPAID\" // \"UNPAID\",\"PAID\", \"OVERDUE\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/invoice/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoice",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "d589ef1f-b87d-404f-a540-8162ce378b6a"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete invoice",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    // \"proposedDate\": \"10-01-2026\",\r\n    \"counterDate\": \"15-01-2026\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/invoice/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoice",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "64b97105-1069-4840-bc2c-41a99551212c"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "supabase_service_role_api_key_1dzs",
+      "secret": true
+    },
+    {
+      "key": "accessToken",
+      "secret": true
+    }
+  ]
+}

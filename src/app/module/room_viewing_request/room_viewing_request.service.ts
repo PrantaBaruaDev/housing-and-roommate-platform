@@ -7,16 +7,15 @@ import { calculatePaginationAndSearch } from "../../utils/paginationAndSearchHel
 import { IQuery } from "../../interface";
 import { IRequestUser } from "../auth/auth.interface";
 import { parseExecuteTime } from "../../utils/dateTimePurser";
+import { ownerSelect, tenantSelect } from "../../utils/userSelectionUtils";
 
 const createViewingRequest = async (
     tenantId: string,
     payload: {
         roomId: string;
-        propertyId: string;
         proposedDate: string | Date;
     }
 ): Promise<RoomViewingRequest> => {
-    // Check if room and property exist
     const roomExists = await prisma.rooms.findUnique({
         where: { id: payload.roomId },
     });
@@ -25,7 +24,6 @@ const createViewingRequest = async (
         throw new ApiError(httpStatus.NOT_FOUND, "Room not found");
     }
 
-    // Prevent duplicate active requests for the same room by the same tenant
     const existingRequest = await prisma.roomViewingRequest.findFirst({
         where: {
             roomId: payload.roomId,
@@ -44,7 +42,7 @@ const createViewingRequest = async (
     const result = await prisma.roomViewingRequest.create({
         data: {
             roomId: payload.roomId,
-            propertyId: payload.propertyId,
+            propertyId: roomExists.propertyId,
             tenantId,
             proposedDate: new Date(payload.proposedDate),
             status: RoomViewingStatus.PENDING,
@@ -57,14 +55,11 @@ const createViewingRequest = async (
                     title: true,
                     address: true,
                     city: true,
+                    owner: {select: ownerSelect},
                 },
             },
             tenant: {
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                },
+                select: tenantSelect,
             },
         },
     });
@@ -86,7 +81,7 @@ const getAllViewingRequests = async (
         andConditions.push({ property: { ownerId: user.userId } });
     }
 
-    const searchableFields = ["roomId", "applicationId", "paymentId"];
+    const searchableFields = ["roomId", "applicationId", "paymentId", "status"];
 
     // Search Filter
     if (searchTerm) {
@@ -108,8 +103,7 @@ const getAllViewingRequests = async (
         });
     }
 
-    const whereConditions: Prisma.RoomViewingRequestWhereInput =
-        andConditions.length > 0 ? { AND: andConditions } : {};
+    const whereConditions: Prisma.RoomViewingRequestWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
 
     const [rawRequests, total] = await prisma.$transaction([
         prisma.roomViewingRequest.findMany({
@@ -199,7 +193,6 @@ const getSingleViewingRequest = async (id: string) => {
         throw new ApiError(httpStatus.NOT_FOUND, "Viewing request not found");
     }
 
-    // Elevate property & owner to top level
     const { owner, ...propertyData } = result.property || {};
     const { room, tenant, ...restItem } = result;
 
@@ -261,7 +254,7 @@ const updateViewingRequestStatus = async (
             room: true,
             property: true,
             tenant: {
-                select: { id: true, name: true, email: true },
+                select: tenantSelect,
             },
         },
     });

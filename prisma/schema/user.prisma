@@ -17,10 +17,9 @@ model Users {
   profiles      Profiles?
   payments      Payments[]
 
-  properties         Property[]        // Available for OWNER role
-  roomOccupant       RoomOccupant[]        // Available for OWNER role
-  applications       Application[]     // Available for CUSTOMER (Tenant) role
-  // sentMessages       Message[]         // For in-app chat engine
+  properties         Property[]
+  roomOccupant       RoomOccupant[]
+  applications       Application[]
   viewingRequests    RoomViewingRequest[]  
   invoice            Invoice[]
 

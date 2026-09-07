@@ -8,7 +8,7 @@ model Application {
   isPrivateLease    Boolean           @default(false) 
   agreedRentAmount  Decimal           @db.Decimal(10, 2) 
 
-  rentalDocumentUrl String?           // Cloudinary URL for signed lease contracts
+  rentalDocumentUrl String?   
   ownerFeedback     String?
 
   createdAt         DateTime          @default(now())
