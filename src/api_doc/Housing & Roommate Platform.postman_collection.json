@@ -27,7 +27,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\r\n{ // Owner\r\n    \"email\": \"testerowner@gmail.com\", \r\n    \"password\": \"Tester@owner12345\"\r\n}\r\n\r\n// { // Admin\r\n//     \"email\": \"testeradmin@gmail.com\", \r\n//     \"password\": \"Tester@admin12345\"\r\n// }\r\n\r\n\r\n// { // Customer\r\n//     \"email\": \"tester.tenant@gmail.com\", \r\n//     \"password\": \"Tester@subscribercustomer12345\"\r\n// }\r\n",
+              "raw": "\r\n{ // Owner\r\n    // \"email\": \"testerowner@gmail.com\", \r\n    \"password\": \"Tester@owner12345 \"\r\n}\r\n\r\n// { // Admin\r\n//     \"email\": \"testeradmin@gmail.com\", \r\n//     \"password\": \"Tester@admin12345\"\r\n// }\r\n\r\n\r\n// { // Customer\r\n//     \"email\": \"tester.tenant@gmail.com\",\r\n//     \"password\": \"Tester@subscribercustomer12345\"\r\n// }\r\n",
               "options": {
                 "raw": {
                   "language": "json"
@@ -202,7 +202,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\r\n// {\r\n//     \"title\": \"Modern 3BR Apartment in Gulshan 2\",\r\n//     \"description\": \"Luxurious fully furnished 3-bedroom apartment featuring modern interior design, high-speed elevators, 24/7 security, backup generator, and a scenic lake view.\",\r\n//     \"address\": \"House 12, Road 45, Gulshan 2\",\r\n//     \"city\": \"Dhaka\"\r\n// }\r\n\r\n{\r\n\"title\": \"Spacious Commercial Office Space in Agrabad\",\r\n\"description\": \"Prime commercial office space located in the heart of Chattogram's business hub. Offers open floor plan, central air conditioning, and dedicated basement parking.\",\r\n\"address\": \"45 Agrabad Commercial Area\",\r\n\"city\": \"Chattogram\"\r\n}\r\n\r\n// {\r\n// \"title\": \"Cozy Duplex Family Home near Zindabazar\",\r\n// \"description\": \"Charming 4-bedroom duplex house with a private garden, rooftop terrace, and wide garage space. Situated in a peaceful residential neighborhood.\",\r\n// \"address\": \"Lane 3, Nayasarak Road, Zindabazar\",\r\n// \"city\": \"Sylhet\"\r\n// },\r\n// {\r\n// \"title\": \"Affordable Bachelor Shared Flat near Rajshahi University\",\r\n// \"description\": \"Well-lit and ventilated 2-bedroom shared apartment ideal for university students or job holders. Includes attached balconies and high-speed Wi-Fi setup.\",\r\n// \"address\": \"House 88, Binodpur Bazaar Road\",\r\n// \"city\": \"Rajshahi\"\r\n// },\r\n// {\r\n// \"title\": \"Riverside 2BR Flat in Khulna Sadar\",\r\n// \"description\": \"Comfortable 2-bedroom residential flat with modern fittings, south-facing balcony for natural light, and easy access to public transport and markets.\",\r\n// \"address\": \"72 KDA Avenue, Mojgunni\",\r\n// \"city\": \"Khulna\"\r\n// }\r\n",
+              "raw": "\r\n// {\r\n//     \"title\": \"Modern 3BR Apartment in Gulshan 2\",\r\n//     \"description\": \"Luxurious fully furnished 3-bedroom apartment featuring modern interior design, high-speed elevators, 24/7 security, backup generator, and a scenic lake view.\",\r\n//     \"address\": \"House 12, Road 45, Gulshan 2\",\r\n//     \"city\": \"Dhaka\"\r\n// }\r\n\r\n// {\r\n// \"title\": \"Spacious Commercial Office Space in Agrabad\",\r\n// \"description\": \"Prime commercial office space located in the heart of Chattogram's business hub. Offers open floor plan, central air conditioning, and dedicated basement parking.\",\r\n// \"address\": \"45 Agrabad Commercial Area\",\r\n// \"city\": \"Chattogram\"\r\n// }\r\n\r\n{\r\n\"title\": \"Cozy Duplex Family Home near Zindabazar\",\r\n\"description\": \"Charming 4-bedroom duplex house with a private garden, rooftop terrace, and wide garage space. Situated in a peaceful residential neighborhood.\",\r\n\"address\": \"Lane 3, Nayasarak Road, Zindabazar\",\r\n\"city\": \"Sylhet\"\r\n}\r\n\r\n// {\r\n// \"title\": \"Affordable Bachelor Shared Flat near Rajshahi University\",\r\n// \"description\": \"Well-lit and ventilated 2-bedroom shared apartment ideal for university students or job holders. Includes attached balconies and high-speed Wi-Fi setup.\",\r\n// \"address\": \"House 88, Binodpur Bazaar Road\",\r\n// \"city\": \"Rajshahi\"\r\n// },\r\n// {\r\n// \"title\": \"Riverside 2BR Flat in Khulna Sadar\",\r\n// \"description\": \"Comfortable 2-bedroom residential flat with modern fittings, south-facing balcony for natural light, and easy access to public transport and markets.\",\r\n// \"address\": \"72 KDA Avenue, Mojgunni\",\r\n// \"city\": \"Khulna\"\r\n// }\r\n",
               "options": {
                 "raw": {
                   "language": "json"
@@ -305,7 +305,7 @@
               "variable": [
                 {
                   "key": "id",
-                  "value": "fsd"
+                  "value": "0e59023d-3140-409c-abb0-5cd3a8db265a"
                 }
               ]
             }
@@ -432,7 +432,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"propertyId\": \"7fa6c078-7f6d-44da-9b44-4561cdd53006\",\r\n    \"flatName\": \"F-A2B\",\r\n    \"floorNumber\": 2,\r\n    \"rooms\": [\r\n        {\r\n            \"roomNumber\": \"Main Unit (Master Badroom)\",\r\n            \"rentAmount\": 5000,\r\n            \"bookingMode\": \"BOOK_BY_ROOM\",\r\n            \"maxCapacity\": 1\r\n        },\r\n        {\r\n            \"roomNumber\": \"F-A2B-1\",\r\n            \"rentAmount\": 12000,\r\n            \"bookingMode\": \"BOOK_BY_SEAT\",\r\n            \"maxCapacity\": 5\r\n        }\r\n    ]\r\n}",
+              "raw": "{\r\n    \"propertyId\": \"154488f7-ef85-4162-88b2-49180e0ecff3\",\r\n    \"flatName\": \"Sun Rise\",\r\n    \"floorNumber\": 2,\r\n    \"rooms\": [\r\n        {\r\n            \"roomNumber\": \"Main Unit (Master Badroom)\",\r\n            \"rentAmount\": 7000,\r\n            \"bookingMode\": \"BOOK_BY_ROOM\",\r\n            \"maxCapacity\": 3\r\n        },\r\n        {\r\n            \"roomNumber\": \"F-A2-1\",\r\n            \"rentAmount\": 4000,\r\n            \"bookingMode\": \"BOOK_BY_SEAT\",\r\n            \"maxCapacity\": 5\r\n        }\r\n    ]\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -461,7 +461,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"flatId\": \"5ba6bd16-6da7-465a-b55a-7bea52edafaf\",\r\n    \"rooms\": [\r\n        {\r\n            \"roomNumber\": \"F-A2B-2\",\r\n            \"rentAmount\": 1000,\r\n            \"bookingMode\": \"BOOK_BY_SEAT\",\r\n            \"maxCapacity\": 1\r\n        },\r\n        {\r\n            \"roomNumber\": \"F-A2B-3\",\r\n            \"rentAmount\": 2000,\r\n            \"bookingMode\": \"BOOK_BY_SEAT\",\r\n            \"maxCapacity\": 2\r\n        }\r\n    ]\r\n}",
+              "raw": "{\r\n    \"flatId\": \"4afee872-05b9-4feb-a3fb-46d410cd6df0\",\r\n    \"rooms\": [\r\n        {\r\n            \"roomNumber\": \"F-A2B-2\",\r\n            \"rentAmount\": 4000,\r\n            \"bookingMode\": \"BOOK_BY_SEAT\",\r\n            \"maxCapacity\": 2\r\n        }\r\n    ]\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -505,13 +505,40 @@
           "response": []
         },
         {
+          "name": "get single flat, room & property details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/properties/flat/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "properties",
+                "flat",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "flat update",
           "request": {
             "method": "PATCH",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"flatName\": \"Test Update Falt Name\",\r\n    \"floorNumber\": 999\r\n}",
+              "raw": "{\r\n    // \"flatName\": \"Test Update Falt Name\",\r\n    \"floorNumber\": 3\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -534,7 +561,7 @@
               "variable": [
                 {
                   "key": "flatId",
-                  "value": "5ba6bd16-6da7-465a-b55a-7bea52edafaf"
+                  "value": "4afee872-05b9-4feb-a3fb-46d410cd6df0"
                 }
               ]
             }
@@ -620,7 +647,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"roomId\": \"3ee7952d-090d-4ad8-acf7-1a9e15367d34\",\r\n  \"moveInDate\": \"10-01-2026\",\r\n  \"isPrivateLease\": false,\r\n  \"agreedRentAmount\": 5000\r\n//   \"status\": \"PENDING\"\r\n//   \"rentalDocumentUrl\": \"https://res.cloudinary.com/demo/image/upload/v1710000000/lease_contract.pdf\"\r\n}",
+              "raw": "{\r\n  \"roomId\": \"ecb8daa4-0ac5-4da1-947c-77949df79682\",\r\n  \"moveInDate\": \"10-01-2026\"\r\n//   \"isPrivateLease\": false\r\n//   \"agreedRentAmount\": 7000\r\n//   \"status\": \"PENDING\"\r\n//   \"rentalDocumentUrl\": \"https://res.cloudinary.com/demo/image/upload/v1710000000/lease_contract.pdf\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
