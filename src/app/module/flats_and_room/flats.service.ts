@@ -3,6 +3,7 @@ import { ApiError } from "../../errors/ApiError";
 import { IQuery } from "../../interface";
 import { prisma } from "../../lib/prisma";
 import { calculatePaginationAndSearch } from "../../utils/paginationAndSearchHelper";
+import { ownerSelect, tenantSelect } from "../../utils/userSelectionUtils";
 import { IRequestUser } from "../auth/auth.interface";
 import {
 	IAddRoomsToFlatPayload,
@@ -182,7 +183,6 @@ const getPropertyFlatInventory = async (query: IQuery) => {
 		...(andConditions.length > 0 && { AND: andConditions }),
 	};
 
-	// 2. Count total using property model rather than rooms model to match whereConditions shape
 	const [rawProperties, total] = await prisma.$transaction([
 		prisma.property.findMany({
 			where: whereConditions,
@@ -236,6 +236,60 @@ const getPropertyFlatInventory = async (query: IQuery) => {
 		},
 		data,
 	};
+};
+
+const getSingleFlatDetails = async (id: string) => {
+	const rawProperty = await prisma.property.findFirst({
+        where: {
+            isDeleted: false,
+			OR: [
+                { id }, 
+                { flats: { some: { id } } }, 
+                { rooms: { some: { id } } }, 
+            ],
+        },
+        include: {
+            flats: true,
+            rooms: {
+				include: {
+					occupants: true
+				}
+			},
+            owner: {
+                select: {
+                    name: true,
+                    email: true,
+                    profiles: {
+                        select: {
+                            phone: true,
+                            address: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+
+    if (!rawProperty) {
+        throw new ApiError(
+            httpStatus.NOT_FOUND,
+            `Property detail with ID '${id}' was not found.`,
+            "RESOURCE_NOT_FOUND"
+        );
+    }
+
+    const { profiles, ...ownerData } = rawProperty.owner || {};
+
+    const formattedData = {
+        ...rawProperty,
+        owner: {
+            ...ownerData,
+            phone: profiles?.phone || "",
+            address: profiles?.address || "",
+        },
+    };
+
+    return formattedData;
 };
 
 const updateFlatDetails = async (
@@ -408,4 +462,5 @@ export const PropertyFlatService = {
 	updateFlatDetails,
 	updateRoomDetails,
 	deleteRoom,
+	getSingleFlatDetails,
 };

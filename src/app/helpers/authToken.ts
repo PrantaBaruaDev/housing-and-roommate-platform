@@ -1,5 +1,3 @@
-import { JwtPayload } from "jsonwebtoken";
-import { prisma } from "../lib/prisma";
 import config from "../config";
 import { jwtUtils } from "../utils/jwt";
 
@@ -33,36 +31,3 @@ export const createUserTokens = (user: {
 		refreshToken,
 	};
 };
-
-// export const createNewAccessTokenWithRefreshToken = async (
-//   refreshToken: string,
-// ) => {
-//   const verifiedRefreshToken = verifyToken(
-//     refreshToken,
-//     config.JWT_REFRESH_SECRET,
-//   ) as JwtPayload;
-
-//   const user = await prisma.user.findUnique({
-//     where: {
-//       email: verifiedRefreshToken.email,
-//     },
-//   });
-
-//   if (!user) {
-//     throw new Error("User does not exist");
-//   }
-
-//   const jwtPayload = {
-//     userId: user.id,
-//     email: user.email,
-//     role: user.role,
-//   };
-
-//   const accessToken = generateToken(
-//     jwtPayload,
-//     config.JWT_ACCESS_SECRET,
-//     config.JWT_ACCESS_EXPIRES,
-//   );
-
-//   return accessToken;
-// };

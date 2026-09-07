@@ -1,0 +1,14 @@
+node_modules
+src
+logs
+docs
+.env
+.env.local
+.env.example
+.git
+.gitignore
+README.md
+tsconfig.json
+tsup.config.ts
+.vercelignore
+.vscode

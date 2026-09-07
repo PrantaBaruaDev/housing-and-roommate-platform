@@ -150,7 +150,7 @@ const refreshToken = async (token: string) => {
 	);
 
 	if (!verifiedRefreshToken.success || !verifiedRefreshToken.data) {
-		throw new ApiError(undefined,
+		throw new ApiError(httpStatus.BAD_REQUEST,
 			config.node_env === "development"
 				? verifiedRefreshToken.error
 				: "Invalid refresh token",

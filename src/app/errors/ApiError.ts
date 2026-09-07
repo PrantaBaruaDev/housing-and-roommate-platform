@@ -1,18 +1,24 @@
 export class ApiError extends Error {
-	public statusCode: number | undefined;
+    public statusCode: number;
+    public code?: string;
 
-	constructor(
-		statusCode: number | undefined,
-		message: string | undefined,
-		stack = "",
-	) {
-		super(message);
-		this.statusCode = statusCode;
+    constructor(
+        statusCode: number,
+        message: string,
+        code?: string,
+        stack = ""
+    ) {
+        super(message);
+        this.name = "ApiError";
+        this.statusCode = statusCode;
+        if (code) {
+            this.code = code;
+        }
 
-		if (stack) {
-			this.stack = stack;
-		} else {
-			Error.captureStackTrace(this.constructor, this.constructor);
-		}
-	}
+        if (stack) {
+            this.stack = stack;
+        } else {
+            Error.captureStackTrace(this, this.constructor);
+        }
+    }
 }

@@ -53,6 +53,18 @@ const getFlatProperty = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+const getSingleFlatDetails = catchAsync(async (req: Request, res: Response) => {
+	const {id} = req.params;
+	const result = await PropertyFlatService.getSingleFlatDetails(id as string);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Property, Flat & Room details retrieve successfully",
+		data: result,
+	});
+});
+
 const updateFlatDetails = catchAsync(async (req: Request, res: Response) => {
 	const { flatId } = req.params;
 	const payload = req.body;
@@ -112,4 +124,5 @@ export const PropertyFlatController = {
 	updateFlatDetails,
 	updateRoomDetails,
 	deleteRoom,
+	getSingleFlatDetails,
 };

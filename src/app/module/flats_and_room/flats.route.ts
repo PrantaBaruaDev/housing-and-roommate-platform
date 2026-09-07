@@ -10,6 +10,11 @@ const router = Router();
 // public route
 router.get("/", PropertyFlatController.getFlatProperty);
 
+router.get(
+	"/:id",
+	PropertyFlatController.getSingleFlatDetails,
+);
+
 router.post(
 	"/",
 	validateRequest(

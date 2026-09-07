@@ -9,20 +9,20 @@ import { ApiError } from "../errors/ApiError";
 import httpStatus from 'http-status';
 
 export interface JwtUserPayload {
-  email: string;
-  name: string;
-  userId: string;
-  role: Role;
+	email: string;
+	name: string;
+	userId: string;
+	role: Role;
 }
 
 declare global {
-  namespace Express {
-    interface User extends JwtUserPayload {}
+	namespace Express {
+		interface User extends JwtUserPayload { }
 
-    interface Request {
-      user?: User;
-    }
-  }
+		interface Request {
+			user?: User;
+		}
+	}
 }
 
 export const auth = (...requiredRoles: Role[]) => {
@@ -48,8 +48,8 @@ export const auth = (...requiredRoles: Role[]) => {
 		const verifiedToken = jwtUtils.verifyToken(token, config.jwt_access_secret);
 
 		if (!verifiedToken.success || !verifiedToken.data) {
-			if(config.node_env === "development") {
-				throw new ApiError(undefined, verifiedToken.error);
+			if (config.node_env === "development") {
+				throw new ApiError(httpStatus.UNAUTHORIZED, verifiedToken.error);
 			} else {
 				throw new ApiError(
 					httpStatus.UNAUTHORIZED,

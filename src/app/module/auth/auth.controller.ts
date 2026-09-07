@@ -39,7 +39,7 @@ const credentialsLogin = catchAsync(
 					return next(err);
 				}
 				if (!user) {
-					return next(new Error(info?.message || "Invalid credentials!"));
+					return next(new ApiError(httpStatus.BAD_REQUEST, info?.message || "Invalid credentials!"));
 				}
 
 				const userTokens = createUserTokens(user);

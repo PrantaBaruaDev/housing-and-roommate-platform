@@ -43,7 +43,14 @@ passport.use(
 					});
 				}
 
-				return done(null, user);
+				const sessionUser = {
+                    userId: user.id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                };
+
+                return done(null, sessionUser);
 			} catch (error) {
 				return done(error);
 			}
@@ -98,7 +105,14 @@ passport.use(
 							},
 						});
 					}
-					return done(null, user);
+					const sessionUser = {
+						userId: user.id,
+						email: user.email,
+						name: user.name,
+						role: user.role,
+					};
+
+					return done(null, sessionUser);
 				}
 
 				const photoUrl =
@@ -128,7 +142,14 @@ passport.use(
 					},
 				});
 
-				return done(null, user);
+				const sessionUser = {
+                    userId: user.id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                };
+
+                return done(null, sessionUser);
 			} catch (error) {
 				return done(error as Error);
 			}

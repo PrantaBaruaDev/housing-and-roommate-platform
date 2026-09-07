@@ -2,10 +2,10 @@ import z from "zod";
 import { ApplicationStatus } from "../../../generated/prisma/enums";
 
 const ApplicationCreateZodSchema = z.object({
-	roomId: z.string(),
-	moveInDate: z.coerce.date(),
+	roomId: z.string({ error: "Room ID must be required"}),
+	moveInDate: z.coerce.date({ error: "Move in date must be required"}),
 	isPrivateLease: z.boolean().default(false),
-	agreedRentAmount: z.number(),
+	agreedRentAmount: z.number({ error: "Room ID must be required"}),
 });
 
 const ApplicationUpdateZodSchema = z.object({
