@@ -1,7 +1,7 @@
 import z from "zod";
 
 const LoginZodSchema = z.object({
-	email: z.email(),
+	email: z.email({ error: "Email must be required"}),
 	password: z
 		.string()
 		.min(8, "Password Must Minimum 8 Characters Long.")
