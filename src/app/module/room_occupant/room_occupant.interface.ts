@@ -15,3 +15,4 @@ export interface RoomOccupant {
 }
 
 export type ICreateRoomOccupant = Omit<RoomOccupant, "id" | "moveOutAt">
+
