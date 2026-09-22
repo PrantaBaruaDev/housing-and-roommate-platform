@@ -15,7 +15,10 @@ import { prisma } from "../../lib/prisma";
 import { parseExecuteTime } from "../../utils/dateTimePurser";
 import { calculatePaginationAndSearch } from "../../utils/paginationAndSearchHelper";
 import { tenantSelect } from "../../utils/userSelectionUtils";
+import { approveApplication } from "../applications/applications.service";
 import { IRequestUser } from "../auth/auth.interface";
+import { markInvoiceAsPaid } from "../invoice/invoice.service";
+import { upsertRoomOccupant } from "../room_occupant/room_occupant.service";
 import { ICreatePaymentPayload } from "./payments.interface";
 import httpStatus from "http-status";
 
@@ -438,12 +441,7 @@ export const paymentBkashCallback = async (query: Record<string, any>) => {
 		});
 
 		if (existingPayment.invoiceId) {
-			await tx.invoice.update({
-				where: { id: existingPayment.invoiceId },
-				data: {
-					status: BillStatus.PAID,
-				},
-			});
+			await markInvoiceAsPaid(existingPayment.invoiceId, tx);
 		}
 		else if (existingPayment.applicationId && existingPayment.application) {
 			const application = existingPayment.application;
@@ -451,25 +449,24 @@ export const paymentBkashCallback = async (query: Record<string, any>) => {
 
 			if (!room) throw new ApiError(httpStatus.NOT_FOUND, "Associated room missing for this payment.");
 
-			await tx.application.update({
-				where: { id: application.id },
-				data: { status: ApplicationStatus.APPROVED },
-			});
+			/**
+			 * Approved the Application status
+			 * */
+			await approveApplication(application.id, tx);
 
-			await tx.roomOccupant.upsert({
-				where: { applicationId: application.id },
-				create: {
-					roomId: room.id,
+			/**
+			 * create and update the Room Occupants
+			 * */
+			await upsertRoomOccupant(
+				{
 					applicationId: application.id,
+					roomId: room.id,
 					paymentId: updatedPayment.id,
 					tenantId: updatedPayment.tenantId,
-					movedInAt: application.moveInDate,
+					moveInDate: application.moveInDate,
 				},
-				update: {
-					paymentId: updatedPayment.id,
-					movedInAt: application.moveInDate,
-				},
-			});
+				tx
+			);
 		}
 
 		return {

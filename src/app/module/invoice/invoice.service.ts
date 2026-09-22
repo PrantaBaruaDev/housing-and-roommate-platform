@@ -6,6 +6,7 @@ import { InvoiceType, Role } from "../../../generated/prisma/enums";
 import { Prisma } from "../../../generated/prisma/client";
 import { ICreateInvoicePayload, IUpdateInvoice } from "./invoice.interface";
 import { BillStatus } from './../../../generated/prisma/enums';
+import { TransactionParam } from "../../interface";
 
 const createInvoice = async (payload: ICreateInvoicePayload) => {
     const roomOccupant = await prisma.roomOccupant.findUnique({
@@ -262,6 +263,17 @@ const deleteInvoice = async (user: IRequestUser, id: string) => {
     });
 
     return deletedInvoice;
+};
+
+
+export const markInvoiceAsPaid = async (
+  invoiceId: string,
+  tx: TransactionParam
+) => {
+  return await tx.invoice.update({
+    where: { id: invoiceId },
+    data: { status: BillStatus.PAID },
+  });
 };
 
 export const InvoiceService = {

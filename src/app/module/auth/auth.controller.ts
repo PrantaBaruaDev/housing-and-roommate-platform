@@ -179,8 +179,11 @@ export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+export const verifiedUserRegistration = () => {}
+
 export const AuthController = {
 	registerUser,
+	verifiedUserRegistration,
 	credentialsLogin,
 	getMe,
 	googleLogin,

@@ -1,67 +1,67 @@
 import { Prisma, Role } from "../../../generated/prisma/client";
-import { IQuery } from "../../interface";
+import { IQuery, TransactionParam } from "../../interface";
 import { prisma } from "../../lib/prisma";
 import { calculatePaginationAndSearch } from "../../utils/paginationAndSearchHelper";
 import { tenantSelect } from "../../utils/userSelectionUtils";
 import { IRequestUser } from "../auth/auth.interface";
 
 const getAllOwnRoomOccupantDetails = async (query: IQuery, user: IRequestUser) => {
-	const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } = calculatePaginationAndSearch(query);
+    const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } = calculatePaginationAndSearch(query);
 
-	const andConditions: Prisma.RoomOccupantWhereInput[] = [];
+    const andConditions: Prisma.RoomOccupantWhereInput[] = [];
 
-	const searchableFields = ["roomId", "applicationId", "paymentId"];
+    const searchableFields = ["roomId", "applicationId", "paymentId"];
 
-	// Search Filter
-	if (searchTerm) {
-		andConditions.push({
-			OR: searchableFields.map((field) => ({
-				[field]: {
-					contains: searchTerm,
-					mode: "insensitive",
-				},
-			})),
-		});
-	}
+    // Search Filter
+    if (searchTerm) {
+        andConditions.push({
+            OR: searchableFields.map((field) => ({
+                [field]: {
+                    contains: searchTerm,
+                    mode: "insensitive",
+                },
+            })),
+        });
+    }
 
-	if (Object.keys(filterData).length > 0) {
-		andConditions.push({
-			AND: Object.keys(filterData).map((key) => ({
-				[key]: filterData[key],
-			})),
-		});
-	}
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: Object.keys(filterData).map((key) => ({
+                [key]: filterData[key],
+            })),
+        });
+    }
 
     // Role-Based Filtering
-	let roleCondition: Prisma.RoomOccupantWhereInput = {};
+    let roleCondition: Prisma.RoomOccupantWhereInput = {};
 
-	if (user.role === Role.TENANT) {
-		roleCondition = { tenantId: user.userId };
-	} else if (user.role === Role.OWNER) {
-		roleCondition = {
-			room: {
-				property: {
-					ownerId: user.userId,
-				},
-			},
-		};
-	} else if (user.role === Role.ADMIN) {
-		roleCondition = {}; 
-	}
+    if (user.role === Role.TENANT) {
+        roleCondition = { tenantId: user.userId };
+    } else if (user.role === Role.OWNER) {
+        roleCondition = {
+            room: {
+                property: {
+                    ownerId: user.userId,
+                },
+            },
+        };
+    } else if (user.role === Role.ADMIN) {
+        roleCondition = {};
+    }
 
-	const whereConditions: Prisma.RoomOccupantWhereInput = {
-		...roleCondition,
-		...(andConditions.length > 0 && { AND: andConditions }),
-	};
+    const whereConditions: Prisma.RoomOccupantWhereInput = {
+        ...roleCondition,
+        ...(andConditions.length > 0 && { AND: andConditions }),
+    };
 
-	const [rawProperties, total] = await prisma.$transaction([
-		prisma.roomOccupant.findMany({
-			where: whereConditions,
-			skip,
-			take,
-			orderBy: {
-				[sortBy]: sortOrder,
-			},
+    const [rawProperties, total] = await prisma.$transaction([
+        prisma.roomOccupant.findMany({
+            where: whereConditions,
+            skip,
+            take,
+            orderBy: {
+                [sortBy]: sortOrder,
+            },
             include: {
                 room: {
                     select: {
@@ -72,7 +72,7 @@ const getAllOwnRoomOccupantDetails = async (query: IQuery, user: IRequestUser) =
                         rentAmount: true,
                         bookingMode: true,
                         property: {
-                            select:{
+                            select: {
                                 id: true,
                                 title: true,
                                 address: true,
@@ -84,7 +84,7 @@ const getAllOwnRoomOccupantDetails = async (query: IQuery, user: IRequestUser) =
                                 }
                             }
                         },
-                        
+
                     }
                 },
                 application: {
@@ -109,15 +109,15 @@ const getAllOwnRoomOccupantDetails = async (query: IQuery, user: IRequestUser) =
                     select: tenantSelect
                 },
             },
-		}),
-		prisma.roomOccupant.count({
-			where: whereConditions,
-		}),
-	]);
+        }),
+        prisma.roomOccupant.count({
+            where: whereConditions,
+        }),
+    ]);
 
-	const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(total / limit);
 
-	const data = rawProperties.map((roomOccupant) => {
+    const data = rawProperties.map((roomOccupant) => {
         const { owner, ...propertyData } = roomOccupant.room?.property || {};
         const { room, tenant, ...restOccupant } = roomOccupant;
         const { property, ...roomData } = roomOccupant.room;
@@ -125,23 +125,50 @@ const getAllOwnRoomOccupantDetails = async (query: IQuery, user: IRequestUser) =
         return {
             ...restOccupant,
             room: roomData,
-            property: propertyData, 
+            property: propertyData,
             tenant: tenant,
-            owner: owner || null, 
+            owner: owner || null,
         };
     });
 
-	return {
-		meta: {
-			page,
-			limit,
-			total,
-			totalPages,
-		},
-		data,
-	};
+    return {
+        meta: {
+            page,
+            limit,
+            total,
+            totalPages,
+        },
+        data,
+    };
+};
+
+export const upsertRoomOccupant = async (
+    data: {
+        applicationId: string;
+        roomId: string;
+        paymentId: string;
+        tenantId: string;
+        moveInDate: Date;
+    },
+    tx: TransactionParam
+) => {
+    return await tx.roomOccupant.upsert({
+        where: { applicationId: data.applicationId },
+        create: {
+            roomId: data.roomId,
+            applicationId: data.applicationId,
+            paymentId: data.paymentId,
+            tenantId: data.tenantId,
+            movedInAt: data.moveInDate,
+        },
+        update: {
+            paymentId: data.paymentId,
+            movedInAt: data.moveInDate,
+        },
+    });
 };
 
 export const RoomOccupantService = {
     getAllOwnRoomOccupantDetails,
+    upsertRoomOccupant,
 }

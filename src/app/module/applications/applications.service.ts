@@ -1,11 +1,10 @@
-import { omit } from "zod/mini";
 import {
 	ApplicationStatus,
 	Prisma,
 	Role,
 } from "../../../generated/prisma/client";
 import { ApiError } from "../../errors/ApiError";
-import { IQuery } from "../../interface";
+import { IQuery, TransactionParam } from "../../interface";
 import { prisma } from "../../lib/prisma";
 import { calculatePaginationAndSearch } from "../../utils/paginationAndSearchHelper";
 import { ownerSelect, tenantSelect } from "../../utils/userSelectionUtils";
@@ -289,10 +288,23 @@ const deleteApplication = async (id: string) => {
 	return { message: "Application deleted successfully." };
 };
 
+
+export const approveApplication = async (
+	applicationId: string,
+	tx: TransactionParam
+) => {
+	return await tx.application.update({
+		where: { id: applicationId },
+		data: { status: ApplicationStatus.APPROVED },
+	});
+};
+
 export const ApplicationService = {
 	createApplication,
 	getAllApplications,
 	getApplicationById,
 	updateApplication,
 	deleteApplication,
+	
+	approveApplication,
 };

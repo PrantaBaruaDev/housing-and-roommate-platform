@@ -4,7 +4,7 @@ import express, { Application, Request, Response } from "express";
 import httpStatus from "http-status";
 import config from "./app/config";
 import passport from "passport";
-import "./app/config/passport";
+import "./app/lib/passport";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { AuthRoutes } from "./app/module/auth/auth.route";

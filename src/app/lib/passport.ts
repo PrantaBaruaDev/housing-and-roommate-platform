@@ -5,10 +5,12 @@ import {
 	Profile,
 	VerifyCallback,
 } from "passport-google-oauth20";
-import { prisma } from "../lib/prisma";
+import { prisma } from "./prisma";
 import bcryptjs from "bcryptjs";
-import config from ".";
+import config from "../config";
 import { AuthProvider, Role } from "../../generated/prisma/enums";
+import { redisClient, redisKey } from "./redis";
+import crypto from "crypto";
 
 passport.use(
 	new LocalStrategy(
@@ -43,14 +45,7 @@ passport.use(
 					});
 				}
 
-				const sessionUser = {
-                    userId: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role,
-                };
-
-                return done(null, sessionUser);
+				return done(null, user as any);
 			} catch (error) {
 				return done(error);
 			}
@@ -105,51 +100,33 @@ passport.use(
 							},
 						});
 					}
-					const sessionUser = {
-						userId: user.id,
-						email: user.email,
-						name: user.name,
-						role: user.role,
-					};
-
-					return done(null, sessionUser);
+					return done(null, user as any);
 				}
 
-				const photoUrl =
-					profile.photos && profile.photos.length > 0
-						? profile.photos[0]?.value
-						: null;
 
-				// 4. Create new user if no match found
-				user = await prisma.users.create({
-					data: {
-						name:
-							profile.displayName ||
-							`${profile.name?.givenName ?? ""} ${profile.name?.familyName ?? ""}`.trim(),
-						email,
-						googleId: profile.id,
-						password: "",
-						authProvider: AuthProvider.GOOGLE,
-						emailVerified: true,
-						profiles: {
-							create: {
-								profilePhoto: photoUrl,
-								address: "",
-								phone: "",
-								nid: "",
-							},
-						},
-					},
-				});
+				// TODO here we need send email and verify email by OTP
+				// NEW USER: Save to Redis + send OTP (do NOT create DB user yet)
+				const photoUrl = profile.photos?.[0]?.value || null;
+				const otp = crypto.randomInt(100000, 1000000).toString().padStart(6, "0");
 
-				const sessionUser = {
-                    userId: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role,
-                };
+				// Generate key: "housing-roommate-platform:pending_google_user:example@gmail.com"
+				const key = redisKey("pending_google_user", email);
+				const expireTime = 5 * 60;
 
-                return done(null, sessionUser);
+
+				const pendingUserPayload = {
+					name:
+						profile.displayName ||
+						`${profile.name?.givenName ?? ""} ${profile.name?.familyName ?? ""}`.trim(),
+					email,
+					googleId: profile.id,
+					photoUrl,
+					otp,
+				};
+
+				// Save in Redis for 5 minutes (300 seconds)
+				await redisClient.setEx(key, expireTime, JSON.stringify(pendingUserPayload));
+				return done(null, { isPending: true, email } as any);
 			} catch (error) {
 				return done(error as Error);
 			}

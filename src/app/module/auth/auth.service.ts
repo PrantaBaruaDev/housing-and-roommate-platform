@@ -13,6 +13,7 @@ import {
 	ILoginUserPayload,
 	IRegisterPatientPayload,
 	IRequestUser,
+	IVerifyEmailPayload,
 } from "./auth.interface";
 import { createUserTokens } from "../../helpers/authToken";
 import httpStatus from "http-status";
@@ -71,6 +72,28 @@ const registerUser = async (payload: IRegisterPatientPayload) => {
 		refreshToken,
 	};
 };
+
+const verifyRegisterUserEmail = async (payload: IVerifyEmailPayload) => {
+	const otp = payload.otp;
+	const email = payload.email.trim().toLowerCase();
+
+	const isUserExist = await prisma.users.findUnique({
+		where: { email },
+	});
+
+	if (isUserExist?.status === "BLOCKED") {
+		throw new ApiError(httpStatus.FORBIDDEN, "User is Blocked");
+	}
+
+	if (isUserExist?.emailVerified) {
+		throw new ApiError(httpStatus.CONFLICT, "Email ALready Verified");
+	}
+
+	if (isUserExist?.isDeleted || isUserExist?.status === "DELETED") {
+		throw new ApiError(httpStatus.FORBIDDEN, "User is Deleted");
+	}
+
+}
 
 const loginUser = async (payload: ILoginUserPayload) => {
 	const { password } = payload;
@@ -315,6 +338,7 @@ export const getAllUsersService = async (query: IQuery, user: IRequestUser) => {
 };
 export const AuthService = {
 	registerUser,
+	verifyRegisterUserEmail,
 	loginUser,
 	getMe,
 	refreshToken,
