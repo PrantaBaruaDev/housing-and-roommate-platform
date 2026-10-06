@@ -27,6 +27,7 @@ export const createUserTokens = (user: {
 	);
 
 	return {
+		user: jwtPayload,
 		accessToken,
 		refreshToken,
 	};

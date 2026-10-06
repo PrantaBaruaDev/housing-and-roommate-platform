@@ -53,6 +53,7 @@ const credentialsLogin = catchAsync(
 					statusCode: httpStatus.OK,
 					message: "User login successfully",
 					data: {
+						user: userTokens.user,
 						accessToken: userTokens.accessToken,
 						refreshToken: userTokens.refreshToken,
 					},

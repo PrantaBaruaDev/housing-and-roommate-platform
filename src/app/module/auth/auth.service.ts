@@ -141,6 +141,7 @@ const loginUser = async (payload: ILoginUserPayload) => {
 	);
 
 	return {
+		user: jwtPayload,
 		accessToken,
 		refreshToken,
 	};
