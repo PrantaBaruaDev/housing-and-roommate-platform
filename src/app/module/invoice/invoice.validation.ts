@@ -28,7 +28,20 @@ const updateInvoiceZodSchema = z.object({
     type: z.enum(InvoiceType).optional(),
 });
 
+const InvoiceListQueryZodSchema = z.object({
+  page: z.coerce.number().int().positive().optional().default(1),
+  limit: z.coerce.number().int().positive().max(100).optional().default(10),
+  sortBy: z.string().optional().default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+  searchTerm: z.string().optional(),
+  status: z.enum(BillStatus).optional(),
+  type: z.enum(InvoiceType).optional(),
+  propertyId: z.string().uuid().optional(),
+  tenantId: z.string().uuid().optional(),
+});
+
 export const InvoiceValidation = {
     createInvoiceZodSchema,
     updateInvoiceZodSchema,
+    InvoiceListQueryZodSchema,
 };

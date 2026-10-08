@@ -18,13 +18,14 @@ const createInvoice = catchAsync(async (req: Request, res: Response) => {
 
 const getAllInvoices = catchAsync(async (req: Request, res: Response) => {
     const user = req.user as IRequestUser;
-    const result = await InvoiceService.getAllInvoices(user);
+    const result = await InvoiceService.getAllInvoices(req.query, user);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
         message: "Invoices retrieved successfully",
-        data: result,
+        data: result.data,
+        meta: result.meta,
     });
 });
 

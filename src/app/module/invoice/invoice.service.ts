@@ -5,8 +5,9 @@ import { IRequestUser } from "../auth/auth.interface";
 import { InvoiceType, Role } from "../../../generated/prisma/enums";
 import { Prisma } from "../../../generated/prisma/client";
 import { ICreateInvoicePayload, IUpdateInvoice } from "./invoice.interface";
-import { BillStatus } from './../../../generated/prisma/enums';
-import { TransactionParam } from "../../interface";
+import { BillStatus } from "../../../generated/prisma/enums";
+import { IQuery, TransactionParam } from "../../interface";
+import { calculatePaginationAndSearch } from "../../utils/paginationAndSearchHelper";
 
 const createInvoice = async (payload: ICreateInvoicePayload) => {
     const roomOccupant = await prisma.roomOccupant.findUnique({
@@ -98,33 +99,64 @@ const createInvoice = async (payload: ICreateInvoicePayload) => {
     return result;
 };
 
-const getAllInvoices = async (user: IRequestUser) => {
-    let whereCondition: Prisma.InvoiceWhereInput = {};
+const getAllInvoices = async (query: IQuery, user: IRequestUser) => {
+    const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } =
+        calculatePaginationAndSearch(query);
+
+    const andConditions: Prisma.InvoiceWhereInput[] = [];
 
     if (user.role === Role.TENANT) {
-        whereCondition = { tenantId: user.userId };
+        andConditions.push({ tenantId: user.userId });
     } else if (user.role === Role.OWNER) {
-        whereCondition = {
-            property: { ownerId: user.userId },
-        };
+        andConditions.push({ property: { ownerId: user.userId } });
     }
 
-    const invoices = await prisma.invoice.findMany({
-        where: whereCondition,
-        include: {
-            tenant: { select: { id: true, name: true, email: true } },
-            property: { select: { id: true, title: true } },
-            roomOccupant: {
-                include: {
-                    room: { select: { id: true, roomNumber: true } },
-                },
-            },
-            payment: true,
-        },
-        orderBy: { createdAt: "desc" },
-    });
+    const searchableFields = ["billMonth"];
+    if (searchTerm) {
+        andConditions.push({
+            OR: searchableFields.map((field) => ({
+                [field]: { contains: searchTerm, mode: "insensitive" },
+            })),
+        });
+    }
 
-    return invoices;
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: Object.keys(filterData).map((key) => ({
+                [key]: filterData[key],
+            })),
+        });
+    }
+
+    const whereCondition: Prisma.InvoiceWhereInput =
+        andConditions.length > 0 ? { AND: andConditions } : {};
+
+    const [invoices, total] = await prisma.$transaction([
+        prisma.invoice.findMany({
+            where: whereCondition,
+            skip,
+            take,
+            orderBy: { [sortBy]: sortOrder },
+            include: {
+                tenant: { select: { id: true, name: true, email: true } },
+                property: { select: { id: true, title: true } },
+                roomOccupant: {
+                    include: {
+                        room: { select: { id: true, roomNumber: true } },
+                    },
+                },
+                payment: true,
+            },
+        }),
+        prisma.invoice.count({ where: whereCondition }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+        meta: { page, limit, total, totalPages },
+        data: invoices,
+    };
 };
 
 const getSingleInvoiceById = async (user: IRequestUser, id: string) => {
@@ -177,7 +209,8 @@ const updateInvoice = async (
     const updateData: Prisma.InvoiceUpdateInput = {};
 
     if (payload.billMonth) {
-        const isPaid = existingInvoice.status === "PAID" || Boolean(existingInvoice.payment);
+        const isPaid =
+            existingInvoice.status === "PAID" || Boolean(existingInvoice.payment);
 
         if (isPaid) {
             throw new ApiError(
@@ -221,7 +254,8 @@ const updateInvoice = async (
             0
         );
         updateData.utilityAmount = new Prisma.Decimal(currentUtility);
-        updateData.utilityDetails = payload.utilityDetails as unknown as Prisma.InputJsonValue;
+        updateData.utilityDetails =
+            payload.utilityDetails as unknown as Prisma.InputJsonValue;
     } else if (payload.utilityAmount !== undefined) {
         currentUtility = payload.utilityAmount;
         updateData.utilityAmount = new Prisma.Decimal(currentUtility);
@@ -265,15 +299,14 @@ const deleteInvoice = async (user: IRequestUser, id: string) => {
     return deletedInvoice;
 };
 
-
 export const markInvoiceAsPaid = async (
-  invoiceId: string,
-  tx: TransactionParam
+    invoiceId: string,
+    tx: TransactionParam
 ) => {
-  return await tx.invoice.update({
-    where: { id: invoiceId },
-    data: { status: BillStatus.PAID },
-  });
+    return await tx.invoice.update({
+        where: { id: invoiceId },
+        data: { status: BillStatus.PAID },
+    });
 };
 
 export const InvoiceService = {
