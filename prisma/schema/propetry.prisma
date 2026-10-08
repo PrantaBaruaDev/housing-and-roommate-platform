@@ -7,14 +7,19 @@ model Property {
   ownerId        String
   imagePublicID  String?
   propertyImage  String?
+  propertyType   PropertyType   @default(RESIDENTIAL)
+  amenities      String[]       @default([])
+  isVerified     Boolean        @default(false)
+  verifiedAt     DateTime?
+  verifiedBy     String?
   isDeleted      Boolean        @default(false)
   deletedAt      DateTime?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  owner          Users          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  rooms          Rooms[]
-  flats  Flats[]
+  owner            Users                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  rooms            Rooms[]
+  flats            Flats[]
   roomViewRequest  RoomViewingRequest[]
   invoice          Invoice[]
 

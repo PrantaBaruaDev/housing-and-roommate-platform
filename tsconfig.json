@@ -26,7 +26,7 @@
     /* Environment */
     "types": ["node"]
   },
-  "include": ["src/**/*", "prisma.config.ts"],
+  "include": ["src/**/*", "prisma/seeds/**/*", "prisma.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
 
