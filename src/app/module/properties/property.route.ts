@@ -43,6 +43,12 @@ router.patch(
 );
 
 router.patch(
+  "/:id/verify",
+  auth(Role.ADMIN),
+  PropertyController.verifyProperty,
+);
+
+router.patch(
 	"/:id/delete",
 	auth(Role.ADMIN, Role.OWNER),
 	PropertyController.softDeletePropertyByID,

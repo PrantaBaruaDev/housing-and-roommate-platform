@@ -142,6 +142,20 @@ const deletePropertyByID = catchAsync(
 	},
 );
 
+const verifyProperty = catchAsync(async (req: Request, res: Response) => {
+  	const { id } = req.params;
+	const user = req.user as IRequestUser;
+
+  const result = await PropertyService.verifyProperty(id as string, user);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Property verified successfully.",
+    data: result,
+  });
+});
+
 export const PropertyController = {
 	createProperty,
 	getAllProperty,
@@ -151,4 +165,5 @@ export const PropertyController = {
 	getAllDeletedProperty,
 	softDeletePropertyByID,
 	deletePropertyByID,
+	verifyProperty,
 };

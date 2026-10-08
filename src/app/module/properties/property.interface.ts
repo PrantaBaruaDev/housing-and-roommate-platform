@@ -1,48 +1,39 @@
-import { BookingMode } from "../../../generated/prisma/enums";
+import type { BookingMode, PropertyType } from "../../../generated/prisma/enums";
 
-export interface PropertyModel {
-	id: string;
-	title: string;
-	description: string;
-	address: string;
-	city: string;
-	ownerId: string;
-	imagePublicID?: string;
-	propertyImage?: string;
-	isDeleted: boolean;
-	deletedAt?: Date;
-	createdAt: Date;
-	updatedAt: Date;
-
-	// owner: Users;
-	// rooms: Rooms[];
-	// utilitySplits: UtilitySplit[];
+export interface ICreatePropertyPayload {
+  title: string;
+  description: string;
+  address: string;
+  city: string;
+  propertyType?: PropertyType;
+  amenities?: string[];
 }
 
-export type ICreatePropertyPayload = Omit<
-	PropertyModel,
-	"id" | "ownerId" | "createdAt" | "updatedAt" | "deletedAt"
->;
-export type IUpdatePropertyPayload = Omit<
-	PropertyModel,
-	"id" | "ownerId" | "createdAt" | "updatedAt"
->;
-export type ISoftDeletePropertyPayload = Pick<PropertyModel, "isDeleted">;
+export interface IUpdatePropertyPayload {
+  title?: string;
+  description?: string;
+  address?: string;
+  city?: string;
+  propertyType?: PropertyType;
+  amenities?: string[];
+  propertyImage?: string;
+  isDeleted?: boolean;
+}
 
-export interface IRoomInput {
-	roomNumber: string;
-	rentAmount: number;
-	bookingMode?: BookingMode;
-	maxCapacity?: number;
+export interface ISoftDeletePropertyPayload {
+  isDeleted: boolean;
+}
+
+export interface IRoomInputPayload {
+  roomNumber: string;
+  rentAmount: number;
+  bookingMode?: BookingMode;
+  maxCapacity?: number;
 }
 
 export interface IRegisterPropertyInventoryPayload {
-	propertyId: string;
-
-	// Optional: If omitted, falls back to "Main Unit" and Floor 1
-	flatName?: string;
-	floorNumber?: number;
-
-	// Single flat containing 1 or more room details
-	rooms: IRoomInput[];
+  propertyId: string;
+  flatName?: string;
+  floorNumber?: number;
+  rooms: IRoomInputPayload[];
 }
