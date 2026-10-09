@@ -356,13 +356,13 @@ export const paymentBkashCallback = async (query: Record<string, any>) => {
             data: { status: mappedStatus },
         });
         return {
-            redirectUrl: `${config.frontend_url}/payment/cancel?status=${status}`,
+            redirectUrl: `${config.frontend_url}/payments/cancel?status=${status}`,
         };
     }
 
 	if (status !== "success") {
 		return {
-			redirectUrl: `${config.frontend_url}/payment/cancel?error=payment-failed`,
+			redirectUrl: `${config.frontend_url}/payments/cancel?error=payment-failed`,
 		};
 	}
 
@@ -404,7 +404,7 @@ export const paymentBkashCallback = async (query: Record<string, any>) => {
             return {
                 executedPaymentResult,
                 updatedPayment: existingPayment,
-                redirectUrl: `${config.frontend_url}/payment/success?status=success&trxID=${existingPayment.gatewayTransactionId}`,
+                redirectUrl: `${config.frontend_url}/payments/success?status=success&trxID=${existingPayment.gatewayTransactionId}`,
             };
         }
 
@@ -419,7 +419,7 @@ export const paymentBkashCallback = async (query: Record<string, any>) => {
 
             return {
                 executedPaymentResult,
-                redirectUrl: `${config.frontend_url}/payment/cancel?status=failed&message=${encodeURIComponent(
+                redirectUrl: `${config.frontend_url}/payments/cancel?status=failed&message=${encodeURIComponent(
                     executedPaymentResult?.statusMessage || "Execution failed"
                 )}`,
             };
@@ -472,7 +472,7 @@ export const paymentBkashCallback = async (query: Record<string, any>) => {
 		return {
 			executedPaymentResult,
 			updatedPayment,
-			redirectUrl: `${config.frontend_url}/payment/success?status=success&trxID=${executedPaymentResult.trxID}`,
+			redirectUrl: `${config.frontend_url}/payments/success?status=success&trxID=${executedPaymentResult.trxID}`,
 		};
 	});
 };
