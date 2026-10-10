@@ -2,6 +2,10 @@
 
 Backend API for a housing marketplace and roommate platform. The system supports tenant registration and authentication, owner property and room inventory management, room viewing requests, rental applications, invoices, and bKash payments.
 
+**Live Frontend demo:** https://roomly-frontend-gold.vercel.app
+**Live Backend API:** https://housing-and-roommate-platform.vercel.app/
+**Frontend Repo:** https://github.com/PrantaBaruaDev/roomly-housing-and-roommate-platform-frontend.git
+
 ## Contents
 
 - [Technology](#technology)
