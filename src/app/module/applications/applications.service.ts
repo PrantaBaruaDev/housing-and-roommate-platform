@@ -137,6 +137,8 @@ const getAllApplications = async (query: IQuery, user: IRequestUser) => {
 				isPrivateLease: true,
 				agreedRentAmount: true,
 				ownerFeedback: true,
+				createdAt: true,
+				updatedAt: true,
 				tenant: {
 					select: {
 						id: true,

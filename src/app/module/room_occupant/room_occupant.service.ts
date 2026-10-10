@@ -1,9 +1,11 @@
 import { Prisma, Role } from "../../../generated/prisma/client";
+import { ApiError } from "../../errors/ApiError";
 import { IQuery, TransactionParam } from "../../interface";
 import { prisma } from "../../lib/prisma";
 import { calculatePaginationAndSearch } from "../../utils/paginationAndSearchHelper";
 import { tenantSelect } from "../../utils/userSelectionUtils";
 import { IRequestUser } from "../auth/auth.interface";
+import httpStatus from 'http-status';
 
 const getAllOwnRoomOccupantDetails = async (query: IQuery, user: IRequestUser) => {
     const { page, limit, skip, take, sortBy, sortOrder, searchTerm, filterData } = calculatePaginationAndSearch(query);
@@ -168,7 +170,157 @@ export const upsertRoomOccupant = async (
     });
 };
 
+const moveOutRoomOccupant = async (
+    occupantId: string,
+    user: IRequestUser,
+) => {
+    const occupant = await prisma.roomOccupant.findUnique({
+        where: { id: occupantId },
+        include: {
+            room: {
+                include: {
+                    property: { select: { ownerId: true } },
+                },
+            },
+        },
+    });
+
+    if (!occupant) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Room occupant not found.");
+    }
+
+    if (occupant.movedOutAt) {
+        throw new ApiError(
+            httpStatus.BAD_REQUEST,
+            "This tenant has already moved out of the room.",
+        );
+    }
+
+    const isOwner = occupant.room?.property?.ownerId === user.userId;
+    const isAdmin = user.role === Role.ADMIN;
+
+    if (!isOwner && !isAdmin) {
+        throw new ApiError(
+            httpStatus.FORBIDDEN,
+            "You can only update occupancy for your own properties.",
+        );
+    }
+
+    return await prisma.$transaction(async (tx) => {
+        const updated = await tx.roomOccupant.update({
+            where: { id: occupantId },
+            data: { movedOutAt: new Date() },
+            include: {
+                tenant: { select: { id: true, name: true, email: true } },
+                room: {
+                    select: {
+                        id: true,
+                        roomNumber: true,
+                        maxCapacity: true,
+                        availableCapacity: true,
+                        property: { select: { id: true, title: true } },
+                    },
+                },
+                application: {
+                    select: {
+                        id: true,
+                        status: true,
+                        agreedRentAmount: true,
+                    },
+                },
+            },
+        });
+
+        const room = occupant.room;
+        if (room) {
+            const nextCapacity = Math.min(
+                room.maxCapacity,
+                room.availableCapacity + 1,
+            );
+            await tx.rooms.update({
+                where: { id: room.id },
+                data: {
+                    availableCapacity: nextCapacity,
+                    isAvailable: nextCapacity > 0,
+                },
+            });
+        }
+
+        return updated;
+    });
+};
+
+const undoMoveOut = async (occupantId: string, user: IRequestUser) => {
+    const occupant = await prisma.roomOccupant.findUnique({
+        where: { id: occupantId },
+        include: {
+            room: {
+                include: {
+                    property: { select: { ownerId: true } },
+                },
+            },
+        },
+    });
+
+    if (!occupant) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Room occupant not found.");
+    }
+
+    if (!occupant.movedOutAt) {
+        throw new ApiError(
+            httpStatus.BAD_REQUEST,
+            "This tenant has not been marked as moved out.",
+        );
+    }
+
+    const isOwner = occupant.room?.property?.ownerId === user.userId;
+    const isAdmin = user.role === Role.ADMIN;
+
+    if (!isOwner && !isAdmin) {
+        throw new ApiError(
+            httpStatus.FORBIDDEN,
+            "You can only update occupancy for your own properties.",
+        );
+    }
+    
+    return prisma.$transaction(async (tx) => {
+        const updated = await tx.roomOccupant.update({
+            where: { id: occupantId },
+            data: { movedOutAt: null },
+            include: {
+                tenant: { select: { id: true, name: true, email: true } },
+                room: {
+                    select: {
+                        id: true,
+                        roomNumber: true,
+                        maxCapacity: true,
+                        availableCapacity: true,
+                        property: { select: { id: true, title: true } },
+                    },
+                },
+                application: {
+                    select: {
+                        id: true,
+                        status: true,
+                        agreedRentAmount: true,
+                    },
+                },
+            },
+        });
+
+        await tx.rooms.update({
+            where: { id: occupant.roomId },
+            data: {
+                availableCapacity: { decrement: 1 },
+            },
+        });
+        return updated;
+    });
+};
+
 export const RoomOccupantService = {
     getAllOwnRoomOccupantDetails,
     upsertRoomOccupant,
+    moveOutRoomOccupant,
+    undoMoveOut,
 }

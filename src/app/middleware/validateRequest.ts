@@ -4,7 +4,10 @@ import type z from "zod";
 import { catchAsync } from "../utils/catchAsync";
 import { ApiError } from "../errors/ApiError";
 
-export const validateRequest = (zodSchema: z.ZodObject) => {
+export const validateRequest = (
+	zodSchema: z.ZodObject, 
+	source: "body" | "query" | "params" = "body",
+) => {
 	return catchAsync((req: Request, res: Response, next: NextFunction) => {
 		const payload = req.body ?? {};
 
@@ -20,7 +23,16 @@ export const validateRequest = (zodSchema: z.ZodObject) => {
 			);
 		}
 
-		req.body = result.data;
+		if (source === "query") {
+			Object.defineProperty(req, "query", {
+				value: result.data,
+				writable: true,
+				configurable: true,
+				enumerable: true,
+			});
+		} else {
+			req[source] = result.data as any;
+		}
 
 		next();
 	});

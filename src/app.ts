@@ -48,7 +48,8 @@ app.get("/", async (req: Request, res: Response) => {
 
 app.use("/api/v1", globalRateLimiter);
 
-app.use("/api/v1/auth", authRateLimiter, AuthRoutes);
+// app.use("/api/v1/auth", authRateLimiter, AuthRoutes);
+app.use("/api/v1/auth", AuthRoutes);
 app.use("/api/v1/properties", PropertyRoutes);
 app.use("/api/v1/applications", ApplicationRoutes);
 app.use("/api/v1/payments", PaymentsRoute);

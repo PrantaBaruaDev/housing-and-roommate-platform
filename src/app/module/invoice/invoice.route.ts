@@ -17,6 +17,7 @@ router.post(
 router.get(
     "/",
     auth(Role.ADMIN, Role.OWNER, Role.TENANT),
+    validateRequest(InvoiceValidation.InvoiceListQueryZodSchema, "query"),
     InvoiceController.getAllInvoices
 );
 

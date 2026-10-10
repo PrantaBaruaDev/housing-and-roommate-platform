@@ -62,3 +62,9 @@ enum PaymentProvider {
     CARD
     BKASH
 }
+
+enum PropertyType {
+  RESIDENTIAL
+  COMMERCIAL
+  MIXED
+}

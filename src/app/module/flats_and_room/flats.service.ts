@@ -19,7 +19,6 @@ const registerPropertyFlatInventory = async (
 ) => {
 	const { propertyId, flatName, floorNumber, rooms = [] } = payload;
 
-	// 1. Verify property existence prior to transaction to prevent P2025 foreign key failures
 	const existingProperty = await prisma.property.findUnique({
 		where: { id: propertyId, isDeleted: false },
 	});
@@ -32,7 +31,6 @@ const registerPropertyFlatInventory = async (
 	const resolvedFloorNumber = Number(floorNumber) || 0;
 
 	return await prisma.$transaction(async (tx) => {
-		// Prevent duplicate flat names on the same property
 		const duplicateFlat = await tx.flats.findFirst({
 			where: {
 				propertyId,
