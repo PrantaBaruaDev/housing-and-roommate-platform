@@ -234,17 +234,70 @@ const updateViewingRequestStatus = async (
 
     const updateData: Prisma.RoomViewingRequestUpdateInput = {};
 
-    // Reschedule logic by Owner
+    /* ── 1. Reschedule (owner/admin only) ─────────────────────── */
     if (payload.counterDate) {
         if (!isOwner && !isAdmin) {
-            throw new ApiError(httpStatus.FORBIDDEN, "Only the owner can set a counter date");
+            throw new ApiError(
+                httpStatus.FORBIDDEN,
+                "Only the owner can set a counter date",
+            );
         }
-        const parseCounterDate = parseExecuteTime(payload.counterDate as string)
+        const parseCounterDate = parseExecuteTime(payload.counterDate as string);
         updateData.counterDate = new Date(parseCounterDate);
         updateData.status = RoomViewingStatus.OWNER_RESCHEDULED;
-    } else if (payload.status) {
-        const allowedRoles: Role[] = [Role.ADMIN, Role.OWNER];
-        if(allowedRoles.includes(user.role)) updateData.status = payload.status;
+    }
+    /* ── 2. Status transition ─────────────────────────────────── */
+    else if (payload.status) {
+        if (isAdmin) {
+            // Admins can force any status
+            updateData.status = payload.status;
+        } else if (isOwner) {
+            // Owner: approve, reject, or (re)schedule a pending request
+            if (existingRequest.status !== RoomViewingStatus.PENDING) {
+                throw new ApiError(
+                    httpStatus.FORBIDDEN,
+                    "You can only act on a pending request.",
+                );
+            }
+            const ownerAllowed: RoomViewingStatus[] = [
+                RoomViewingStatus.APPROVED,
+                RoomViewingStatus.REJECTED,
+                RoomViewingStatus.OWNER_RESCHEDULED,
+            ];
+            if (!ownerAllowed.includes(payload.status)) {
+                throw new ApiError(
+                    httpStatus.FORBIDDEN,
+                    "Owners cannot set this status.",
+                );
+            }
+            updateData.status = payload.status;
+        } else if (isTenant) {
+            // Tenant: only respond to a counter-proposal
+            if (existingRequest.status !== RoomViewingStatus.OWNER_RESCHEDULED) {
+                throw new ApiError(
+                    httpStatus.FORBIDDEN,
+                    "You can only respond to an owner's counter-proposal.",
+                );
+            }
+            const tenantAllowed: RoomViewingStatus[] = [
+                RoomViewingStatus.APPROVED,
+                RoomViewingStatus.REJECTED,
+            ];
+            if (!tenantAllowed.includes(payload.status)) {
+                throw new ApiError(
+                    httpStatus.FORBIDDEN,
+                    "Tenants can only approve or reject a counter-proposal.",
+                );
+            }
+            updateData.status = payload.status;
+        }
+    }
+    /* ── 3. Nothing to update ─────────────────────────────────── */
+    else {
+        throw new ApiError(
+            httpStatus.BAD_REQUEST,
+            "Provide either a status or a counterDate.",
+        );
     }
 
     const updatedResult = await prisma.roomViewingRequest.update({
