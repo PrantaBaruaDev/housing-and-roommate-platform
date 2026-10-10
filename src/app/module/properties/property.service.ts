@@ -12,17 +12,6 @@ import {
 } from "./property.interface";
 import httpStatus from "http-status";
 
-/* ────────────────────────────────────────────────────────────────
-   Shared include + mapper.
-
-   `_count.flats` gives the flat count directly.
-   `rooms: { select: { isAvailable: true } }` gives us the minimal
-   per-room data to count available rooms (Prisma allows only one
-   `_count` per relation, and we need two counts — total and available).
-   When a property realistically has thousands of rooms, swap this to
-   a `prisma.room.groupBy` on propertyId. Not a concern today.
-   ──────────────────────────────────────────────────────────────── */
-
 const PROPERTY_LIST_INCLUDE = {
   owner: {
     select: {

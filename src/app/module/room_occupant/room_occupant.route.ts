@@ -12,5 +12,16 @@ router.get(
     RoomOccupantController.getAllOwnRoomOccupantDetails,
 );
 
+router.patch(
+    "/:id/move-out",
+    auth(Role.ADMIN, Role.OWNER),
+    RoomOccupantController.moveOutRoomOccupant,
+);
+
+router.patch(
+    "/:id/cancel-move-out",
+    auth(Role.ADMIN, Role.OWNER),
+    RoomOccupantController.undoMoveOut,
+);
 
 export const RoomOccupantRoutes = router;
